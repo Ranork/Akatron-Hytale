@@ -3,6 +3,9 @@ const path = require('path');
 const fs = require('fs');
 const { launchGame, launchGameWithVersionCheck, installGame, saveUsername, loadUsername, saveChatUsername, loadChatUsername, saveJavaPath, loadJavaPath, saveInstallPath, loadInstallPath, isGameInstalled, uninstallGame, getHytaleNews, handleFirstLaunchCheck, proposeGameUpdate, markAsLaunched } = require('./backend/launcher');
 const UpdateManager = require('./backend/updateManager');
+const logger = require('./backend/logger');
+
+logger.interceptConsole();
 
 let mainWindow;
 let updateManager;
@@ -66,7 +69,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      devTools: false,
+      devTools: true,
       webSecurity: true
     }
   });
@@ -116,9 +119,30 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  console.log('=== HYTALE F2P LAUNCHER STARTED ===');
+  console.log('Platform:', process.platform);
+  console.log('Architecture:', process.arch);
+  console.log('Electron version:', process.versions.electron);
+  console.log('Node.js version:', process.versions.node);
+  console.log('Log directory:', logger.getLogDirectory());
+  
   createWindow();
   
   setTimeout(async () => {
+    let timeoutReached = false;
+    
+    const unlockPlayButton = () => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('lock-play-button', false);
+      }
+    };
+    
+    const timeoutId = setTimeout(() => {
+      timeoutReached = true;
+      console.warn('First launch check timeout reached, unlocking play button');
+      unlockPlayButton();
+    }, 15000);
+    
     try {
       console.log('Starting first launch check...');
       
@@ -132,7 +156,19 @@ app.whenReady().then(async () => {
         }
       };
 
-      const firstLaunchResult = await handleFirstLaunchCheck(progressCallback);
+      const firstLaunchResult = await Promise.race([
+        handleFirstLaunchCheck(progressCallback),
+        new Promise((_, reject) => {
+          setTimeout(() => reject(new Error('First launch check timeout')), 12000);
+        })
+      ]);
+      
+      clearTimeout(timeoutId);
+      
+      if (timeoutReached) {
+        console.log('Timeout already reached, skipping result processing');
+        return;
+      }
       
       console.log('First launch check result:', firstLaunchResult);
       
@@ -141,32 +177,39 @@ app.whenReady().then(async () => {
           console.log('Sending show-first-launch-update event...');
           
           setTimeout(() => {
-            mainWindow.webContents.send('show-first-launch-update', {
-              existingGame: firstLaunchResult.existingGame,
-              isFirstLaunch: firstLaunchResult.isFirstLaunch
-            });
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              mainWindow.webContents.send('show-first-launch-update', {
+                existingGame: firstLaunchResult.existingGame,
+                isFirstLaunch: firstLaunchResult.isFirstLaunch
+              });
+            }
           }, 1000);
           
         } else if (firstLaunchResult.isFirstLaunch && !firstLaunchResult.existingGame) {
           console.log('Sending show-first-launch-welcome event...');
           
           setTimeout(() => {
-            mainWindow.webContents.send('show-first-launch-welcome');
+            if (mainWindow && !mainWindow.isDestroyed()) {
+              mainWindow.webContents.send('show-first-launch-welcome');
+            }
           }, 1000);
         } else {
-          mainWindow.webContents.send('lock-play-button', false);
+          unlockPlayButton();
         }
       }
     } catch (error) {
+      clearTimeout(timeoutId);
       console.error('Error during first launch check:', error);
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('lock-play-button', false);
+      if (!timeoutReached) {
+        unlockPlayButton();
       }
     }
   }, 3000);
 });
 
 app.on('window-all-closed', () => {
+  console.log('=== LAUNCHER CLOSING ===');
+  
   // Clean up Discord RPC connection
   if (discordRPC) {
     try {
@@ -198,6 +241,12 @@ ipcMain.handle('launch-game', async (event, playerName, javaPath, installPath) =
 
     const result = await launchGameWithVersionCheck(playerName, progressCallback, javaPath, installPath);
     
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      setTimeout(() => {
+        mainWindow.webContents.send('progress-complete');
+      }, 2000);
+    }
+    
     return result;
   } catch (error) {
     console.error('Launch error:', error);
@@ -222,6 +271,12 @@ ipcMain.handle('install-game', async (event, playerName, javaPath, installPath) 
     };
 
     const result = await installGame(playerName, progressCallback, javaPath, installPath);
+    
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      setTimeout(() => {
+        mainWindow.webContents.send('progress-complete');
+      }, 1000);
+    }
     
     return result;
   } catch (error) {
@@ -257,6 +312,7 @@ ipcMain.handle('load-java-path', () => {
 
 ipcMain.handle('save-install-path', (event, installPath) => {
   saveInstallPath(installPath);
+  logger.updateInstallPath();
   return { success: true };
 });
 
@@ -311,8 +367,16 @@ ipcMain.handle('mark-as-launched', async () => {
   }
 });
 
-ipcMain.handle('is-game-installed', () => {
-  return isGameInstalled();
+ipcMain.handle('is-game-installed', async () => {
+  try {
+    return await Promise.race([
+      Promise.resolve(isGameInstalled()),
+      new Promise((resolve) => setTimeout(() => resolve(false), 5000))
+    ]);
+  } catch (error) {
+    console.error('Error checking game installation:', error);
+    return false;
+  }
 });
 
 ipcMain.handle('uninstall-game', async () => {
@@ -341,6 +405,23 @@ ipcMain.handle('open-external', async (event, url) => {
     return { success: true };
   } catch (error) {
     console.error('Failed to open external URL:', error);
+    return { success: false, error: error.message };
+  }
+});
+
+ipcMain.handle('open-game-location', async () => {
+  try {
+    const { getResolvedAppDir } = require('./backend/launcher');
+    const gameDir = path.join(getResolvedAppDir(), 'release', 'package', 'game');
+    
+    if (fs.existsSync(gameDir)) {
+      await shell.openPath(gameDir);
+      return { success: true };
+    } else {
+      throw new Error('Game directory not found');
+    }
+  } catch (error) {
+    console.error('Failed to open game location:', error);
     return { success: false, error: error.message };
   }
 });
@@ -392,7 +473,10 @@ ipcMain.handle('save-settings', async (event, settings) => {
   try {
     if (settings.playerName) saveUsername(settings.playerName);
     if (settings.javaPath !== undefined) saveJavaPath(settings.javaPath);
-    if (settings.installPath !== undefined) saveInstallPath(settings.installPath);
+    if (settings.installPath !== undefined) {
+      saveInstallPath(settings.installPath);
+      logger.updateInstallPath();
+    }
     return { success: true };
   } catch (error) {
     console.error('Save settings error:', error);
@@ -564,3 +648,34 @@ ipcMain.handle('window-minimize', () => {
   }
 });
 
+ipcMain.handle('get-log-directory', () => {
+  return logger.getLogDirectory();
+});
+
+ipcMain.handle('get-recent-logs', async (event, maxLines = 100) => {
+  try {
+    const logDir = logger.getLogDirectory();
+    if (!logDir) return null;
+    
+    // Find the most recent log file
+    const files = fs.readdirSync(logDir)
+      .filter(file => file.startsWith('launcher-') && file.endsWith('.log'))
+      .map(file => ({
+        name: file,
+        path: path.join(logDir, file),
+        mtime: fs.statSync(path.join(logDir, file)).mtime
+      }))
+      .sort((a, b) => b.mtime - a.mtime);
+    
+    if (files.length === 0) return null;
+    
+    const latestLogFile = files[0].path;
+    const content = fs.readFileSync(latestLogFile, 'utf8');
+    const lines = content.split('\n');
+    
+    return lines.slice(-maxLines).join('\n');
+  } catch (error) {
+    console.error('Error reading logs:', error);
+    return null;
+  }
+});

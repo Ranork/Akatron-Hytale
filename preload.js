@@ -20,6 +20,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getHytaleNews: () => ipcRenderer.invoke('get-hytale-news'),
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
   openExternalLink: (url) => ipcRenderer.invoke('openExternalLink', url),
+  openGameLocation: () => ipcRenderer.invoke('open-game-location'),
   saveSettings: (settings) => ipcRenderer.invoke('save-settings', settings),
   loadSettings: () => ipcRenderer.invoke('load-settings'),
   getLocalAppData: () => ipcRenderer.invoke('get-local-app-data'),
@@ -32,6 +33,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   copyModFile: (sourcePath, modsPath) => ipcRenderer.invoke('copy-mod-file', sourcePath, modsPath),
   onProgressUpdate: (callback) => {
     ipcRenderer.on('progress-update', (event, data) => callback(data));
+  },
+  onProgressComplete: (callback) => {
+    ipcRenderer.on('progress-complete', () => callback());
   },
   getUserId: () => ipcRenderer.invoke('get-user-id'),
   checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
@@ -54,5 +58,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   onLockPlayButton: (callback) => {
     ipcRenderer.on('lock-play-button', (event, locked) => callback(locked));
-  }
+  },
+
+  getLogDirectory: () => ipcRenderer.invoke('get-log-directory'),
+  getRecentLogs: (maxLines) => ipcRenderer.invoke('get-recent-logs', maxLines)
 });

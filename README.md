@@ -2,10 +2,9 @@
 
 <div align="center">
 
-![Version](https://img.shields.io/badge/Version-2.0.0-green?style=for-the-badge)
+![Version](https://img.shields.io/badge/Version-2.0.1-green?style=for-the-badge)
 ![Platform](https://img.shields.io/badge/Platform-Windows%20%7C%20Linux%20%7C%20macOS-lightgrey?style=for-the-badge)
 ![License](https://img.shields.io/badge/License-Educational-blue?style=for-the-badge)
-[![Join Discord](https://img.shields.io/badge/Discord-Join%20Server-5865F2?logo=discord&logoColor=white)](https://discord.gg/MHkEjepMQ7)
 
 **A modern, cross-platform offline launcher for Hytale with automatic updates and multiplayer support (windows users & non-premium only)**
 
@@ -67,12 +66,6 @@ See [BUILD.md](BUILD.md) for detailed build instructions or [**Releases**](https
 #### 🖥️ How to create server (Windows Only)?
 See [SERVER.md](SERVER.md)
    
-### 🎮 Usage
-
-1. **Enter your player name**
-2. **Click "PLAY"** 
-3. **Automatic setup** - The launcher handles everything automatically
-4. **Game launches** - Enjoy playing Hytale!
 
 ---
 
@@ -84,7 +77,17 @@ See [BUILD.md](BUILD.md) for comprehensive build instructions.
 
 ## 📋 Changelog
 
-### 🆕 v2.0.0 *(Latest)*
+### 🆕 v2.0.1 *(Latest)*
+- 📊 **Advanced Logging System** - Complete logging with timestamps, file rotation, and session tracking
+- 🔧 **Play Button Fix** - Resolved issue where play button could get stuck in "CHECKING..." state  
+- 💬 **Discord Integration** - Added closable Discord notification for community engagement
+- 📁 **Game Location Access** - New "Open Game Location" button in settings for easy file access
+- 🎯 **UI Polish** - Removed bounce animation from player counter for smoother experience
+- 🛡️ **Stability Improvements** - Enhanced error handling and process lifecycle management
+- ⚡ **Performance Optimizations** - Faster startup times and better resource management
+- 🔄 **Timeout Protection** - Added safety timeouts to prevent launcher freezing
+
+### 🔄 v2.0.0
 - ✅ **Automatic Game Update System** - Smart version checking and seamless updates
 - ✅ **Partial Automatic Launcher Update System** - This will inform you when I release a new update.
 - 🛡️ **UserData Preservation** - Intelligent backup/restore of game saves during updates
@@ -183,11 +186,6 @@ This launcher is created for **educational purposes only**.
 ❤️ **Support Official** - Please support the official game by purchasing it when available.
 
 ---
-
-## 📬 Contact
-
-[![Discord](https://img.shields.io/badge/Discord-amiay3-5865F2?logo=discord&logoColor=white)](https://discord.com/users/1433515183606599873)
-
 
 <div align="center">
 
