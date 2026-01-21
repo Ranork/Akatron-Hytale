@@ -1,3 +1,11 @@
 dist/*
 node_modules/*
 bun.lock
+
+# Build artifacts
+src/
+pkg/
+
+# Package files
+*.tar.zst
+*.zst
