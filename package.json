@@ -141,7 +141,7 @@
     },
     "publish": {
       "provider": "github",
-      "owner": "chasem-dev",
+      "owner": "amiayweb",
       "repo": "Hytale-F2P"
     }
   }
