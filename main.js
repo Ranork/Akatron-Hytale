@@ -2,14 +2,14 @@ const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 const { launchGame, launchGameWithVersionCheck, installGame, saveUsername, loadUsername, saveChatUsername, loadChatUsername, saveChatColor, loadChatColor, saveJavaPath, loadJavaPath, saveInstallPath, loadInstallPath, saveDiscordRPC, loadDiscordRPC, saveLanguage, loadLanguage, isGameInstalled, uninstallGame, repairGame, getHytaleNews, handleFirstLaunchCheck, proposeGameUpdate, markAsLaunched } = require('./backend/launcher');
-const UpdateManager = require('./backend/updateManager');
+const AppUpdater = require('./backend/appUpdater');
 const logger = require('./backend/logger');
 const profileManager = require('./backend/managers/profileManager');
 
 logger.interceptConsole();
 
 let mainWindow;
-let updateManager;
+let appUpdater;
 let discordRPC = null;
 
 // Discord Rich Presence setup
@@ -113,11 +113,13 @@ function createWindow() {
   // Initialize Discord Rich Presence
   initDiscordRPC();
 
-  updateManager = new UpdateManager();
-  setTimeout(async () => {
-    const updateInfo = await updateManager.checkForUpdates();
-    if (updateInfo.updateAvailable) {
-      mainWindow.webContents.send('show-update-popup', updateInfo);
+  // Initialize App Updater
+  appUpdater = new AppUpdater(mainWindow);
+  
+  // Check for updates after a short delay (3 seconds)
+  setTimeout(() => {
+    if (appUpdater) {
+      appUpdater.checkForUpdatesAndNotify();
     }
   }, 3000);
 
@@ -724,7 +726,15 @@ ipcMain.handle('copy-mod-file', async (event, sourcePath, modsPath) => {
 
 ipcMain.handle('check-for-updates', async () => {
   try {
-    return await updateManager.checkForUpdates();
+    if (appUpdater) {
+      const result = await appUpdater.checkForUpdates();
+      return {
+        updateAvailable: result?.updateInfo ? true : false,
+        version: result?.updateInfo?.version,
+        currentVersion: app.getVersion()
+      };
+    }
+    return { updateAvailable: false, error: 'AppUpdater not initialized' };
   } catch (error) {
     console.error('Error checking for updates:', error);
     return { updateAvailable: false, error: error.message };
@@ -733,7 +743,8 @@ ipcMain.handle('check-for-updates', async () => {
 
 ipcMain.handle('open-download-page', async () => {
   try {
-    await shell.openExternal(updateManager.getDownloadUrl());
+    // Open GitHub releases page
+    await shell.openExternal('https://github.com/amiayweb/Hytale-F2P/releases');
 
     setTimeout(() => {
       if (mainWindow && !mainWindow.isDestroyed()) {
@@ -748,8 +759,24 @@ ipcMain.handle('open-download-page', async () => {
   }
 });
 
+ipcMain.handle('quit-and-install-update', async () => {
+  try {
+    if (appUpdater) {
+      appUpdater.quitAndInstall();
+      return { success: true };
+    }
+    return { success: false, error: 'AppUpdater not initialized' };
+  } catch (error) {
+    console.error('Error installing update:', error);
+    return { success: false, error: error.message };
+  }
+});
+
 ipcMain.handle('get-update-info', async () => {
-  return updateManager.getUpdateInfo();
+  if (appUpdater) {
+    return appUpdater.getUpdateInfo();
+  }
+  return { currentVersion: app.getVersion(), updateAvailable: false };
 });
 
 ipcMain.handle('get-gpu-info', () => {
