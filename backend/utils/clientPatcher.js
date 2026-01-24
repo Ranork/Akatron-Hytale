@@ -249,13 +249,8 @@ class ClientPatcher {
       return { success: false, error };
     }
 
-    if (this.isPatchedAlready(clientPath)) {
-      console.log(`Client already patched for ${newDomain}, skipping`);
-      if (progressCallback) {
-        progressCallback('Client already patched', 100);
-      }
-      return { success: true, alreadyPatched: true, patchCount: 0 };
-    }
+    // FORCE PATCHING: Always patch, never skip
+    console.log(`Force patching client for ${newDomain}`);
 
     if (progressCallback) {
       progressCallback('Preparing to patch client...', 10);
@@ -325,13 +320,8 @@ class ClientPatcher {
       return { success: false, error };
     }
 
-    if (this.isPatchedAlready(serverPath)) {
-      console.log(`Server already patched for ${newDomain}, skipping`);
-      if (progressCallback) {
-        progressCallback('Server already patched', 100);
-      }
-      return { success: true, alreadyPatched: true, patchCount: 0 };
-    }
+    // FORCE PATCHING: Always patch, never skip
+    console.log(`Force patching server for ${newDomain}`);
 
     if (progressCallback) {
       progressCallback('Preparing to patch server...', 10);
