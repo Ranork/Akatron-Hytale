@@ -71,6 +71,7 @@ async function downloadFile(url, dest, progressCallback, maxRetries = 5) {
       // Create AbortController for proper stream control
       const controller = new AbortController();
       let hasReceivedData = false;
+      let lastProgressTime = Date.now(); // Initialize before timeout
       
       // Smart overall timeout - only trigger if no progress for extended period
       const overallTimeout = setInterval(() => {
@@ -135,7 +136,7 @@ async function downloadFile(url, dest, progressCallback, maxRetries = 5) {
       const contentLength = response.headers['content-length'];
       const totalSize = contentLength ? parseInt(contentLength, 10) + startByte : 0; // Adjust for resume
       let downloaded = startByte; // Start with existing bytes
-      let lastProgressTime = Date.now();
+      lastProgressTime = Date.now(); // Update time after response received
       const startTime = Date.now();
 
       // Check network status before attempting download
