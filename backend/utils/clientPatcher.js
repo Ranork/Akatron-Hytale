@@ -5,6 +5,8 @@ const AdmZip = require('adm-zip');
 
 // Domain configuration
 const ORIGINAL_DOMAIN = 'hytale.com';
+const MIN_DOMAIN_LENGTH = 4;
+const MAX_DOMAIN_LENGTH = 16;
 
 function getTargetDomain() {
   if (process.env.HYTALE_AUTH_DOMAIN) {
@@ -23,6 +25,10 @@ const DEFAULT_NEW_DOMAIN = 'sanasol.ws';
 /**
  * Patches HytaleClient and HytaleServer binaries to replace hytale.com with custom domain
  * This allows the game to connect to a custom authentication server
+ *
+ * Supports domains from 4 to 16 characters:
+ * - Domains <= 10 chars: Direct replacement, subdomains stripped
+ * - Domains 11-16 chars: Split mode - first 6 chars become subdomain prefix
  */
 class ClientPatcher {
   constructor() {
@@ -34,12 +40,71 @@ class ClientPatcher {
    */
   getNewDomain() {
     const domain = getTargetDomain();
-    if (domain.length !== ORIGINAL_DOMAIN.length) {
-      console.warn(`Warning: Domain "${domain}" length (${domain.length}) doesn't match original "${ORIGINAL_DOMAIN}" (${ORIGINAL_DOMAIN.length})`);
+    if (domain.length < MIN_DOMAIN_LENGTH) {
+      console.warn(`Warning: Domain "${domain}" is too short (min ${MIN_DOMAIN_LENGTH} chars)`);
+      console.warn(`Using default domain: ${DEFAULT_NEW_DOMAIN}`);
+      return DEFAULT_NEW_DOMAIN;
+    }
+    if (domain.length > MAX_DOMAIN_LENGTH) {
+      console.warn(`Warning: Domain "${domain}" is too long (max ${MAX_DOMAIN_LENGTH} chars)`);
       console.warn(`Using default domain: ${DEFAULT_NEW_DOMAIN}`);
       return DEFAULT_NEW_DOMAIN;
     }
     return domain;
+  }
+
+  /**
+   * Calculate the domain patching strategy based on length
+   * @returns {object} Strategy with mainDomain and subdomainPrefix
+   */
+  getDomainStrategy(domain) {
+    if (domain.length <= 10) {
+      // Direct replacement - subdomains will be stripped
+      return {
+        mode: 'direct',
+        mainDomain: domain,
+        subdomainPrefix: '', // Empty = subdomains stripped
+        description: `Direct replacement: hytale.com -> ${domain}`
+      };
+    } else {
+      // Split mode: first 6 chars become subdomain prefix, rest replaces hytale.com
+      const prefix = domain.slice(0, 6);
+      const suffix = domain.slice(6);
+      return {
+        mode: 'split',
+        mainDomain: suffix,
+        subdomainPrefix: prefix,
+        description: `Split mode: subdomain prefix="${prefix}", main domain="${suffix}"`
+      };
+    }
+  }
+
+  /**
+   * Convert a string to the length-prefixed byte format used by the client
+   * Format: [length byte] [00 00 00 padding] [char1] [00] [char2] [00] ... [lastChar]
+   * Note: No null byte after the last character
+   */
+  stringToLengthPrefixed(str) {
+    const length = str.length;
+    const result = Buffer.alloc(4 + length + (length - 1)); // length byte + padding + chars + separators
+
+    // Length byte
+    result[0] = length;
+    // Padding: 00 00 00
+    result[1] = 0x00;
+    result[2] = 0x00;
+    result[3] = 0x00;
+
+    // Characters with null separators (no separator after last char)
+    let pos = 4;
+    for (let i = 0; i < length; i++) {
+      result[pos++] = str.charCodeAt(i);
+      if (i < length - 1) {
+        result[pos++] = 0x00;
+      }
+    }
+
+    return result;
   }
 
   /**
@@ -76,6 +141,30 @@ class ClientPatcher {
   }
 
   /**
+   * Replace bytes in buffer - only overwrites the length of new bytes
+   * Prevents offset corruption by not expanding the replacement
+   */
+  replaceBytes(buffer, oldBytes, newBytes) {
+    let count = 0;
+    const result = Buffer.from(buffer);
+
+    if (newBytes.length > oldBytes.length) {
+      console.warn(`  Warning: New pattern (${newBytes.length}) longer than old (${oldBytes.length}), skipping`);
+      return { buffer: result, count: 0 };
+    }
+
+    const positions = this.findAllOccurrences(result, oldBytes);
+
+    for (const pos of positions) {
+      // Only overwrite the length of the new bytes
+      newBytes.copy(result, pos);
+      count++;
+    }
+
+    return { buffer: result, count };
+  }
+
+  /**
    * UTF-8 domain replacement for Java JAR files.
    * Java stores strings in UTF-8 format in the constant pool.
    */
@@ -109,8 +198,6 @@ class ClientPatcher {
 
     const oldUtf16NoLast = this.stringToUtf16LE(oldDomain.slice(0, -1));
     const newUtf16NoLast = this.stringToUtf16LE(newDomain.slice(0, -1));
-    const oldLastChar = this.stringToUtf16LE(oldDomain.slice(-1));
-    const newLastChar = this.stringToUtf16LE(newDomain.slice(-1));
 
     const oldLastCharByte = oldDomain.charCodeAt(oldDomain.length - 1);
     const newLastCharByte = newDomain.charCodeAt(newDomain.length - 1);
@@ -144,6 +231,67 @@ class ClientPatcher {
   }
 
   /**
+   * Apply all domain patches using length-prefixed format
+   * This is the main patching method for variable-length domains
+   */
+  applyDomainPatches(data, domain, protocol = 'https://') {
+    let result = Buffer.from(data);
+    let totalCount = 0;
+    const strategy = this.getDomainStrategy(domain);
+
+    console.log(`  Patching strategy: ${strategy.description}`);
+
+    // 1. Patch telemetry/sentry URL
+    const oldSentry = 'https://ca900df42fcf57d4dd8401a86ddd7da2@sentry.hytale.com/2';
+    const newSentry = `${protocol}t@${domain}/2`;
+
+    console.log(`  Patching sentry: ${oldSentry.slice(0, 30)}... -> ${newSentry}`);
+    const sentryResult = this.replaceBytes(
+      result,
+      this.stringToLengthPrefixed(oldSentry),
+      this.stringToLengthPrefixed(newSentry)
+    );
+    result = sentryResult.buffer;
+    if (sentryResult.count > 0) {
+      console.log(`    Replaced ${sentryResult.count} sentry occurrence(s)`);
+      totalCount += sentryResult.count;
+    }
+
+    // 2. Patch main domain (hytale.com -> mainDomain)
+    console.log(`  Patching domain: ${ORIGINAL_DOMAIN} -> ${strategy.mainDomain}`);
+    const domainResult = this.replaceBytes(
+      result,
+      this.stringToLengthPrefixed(ORIGINAL_DOMAIN),
+      this.stringToLengthPrefixed(strategy.mainDomain)
+    );
+    result = domainResult.buffer;
+    if (domainResult.count > 0) {
+      console.log(`    Replaced ${domainResult.count} domain occurrence(s)`);
+      totalCount += domainResult.count;
+    }
+
+    // 3. Patch subdomain prefixes
+    const subdomains = ['https://tools.', 'https://sessions.', 'https://account-data.', 'https://telemetry.'];
+    const newSubdomainPrefix = protocol + strategy.subdomainPrefix;
+
+    for (const sub of subdomains) {
+      console.log(`  Patching subdomain: ${sub} -> ${newSubdomainPrefix}`);
+      const subResult = this.replaceBytes(
+        result,
+        this.stringToLengthPrefixed(sub),
+        this.stringToLengthPrefixed(newSubdomainPrefix)
+      );
+      result = subResult.buffer;
+      if (subResult.count > 0) {
+        console.log(`    Replaced ${subResult.count} occurrence(s)`);
+        totalCount += subResult.count;
+      }
+    }
+
+    return { buffer: result, count: totalCount };
+  }
+
+  /**
    * Patch Discord invite URLs from .gg/hytale to .gg/MHkEjepMQ7
    */
   patchDiscordUrl(data) {
@@ -153,6 +301,18 @@ class ClientPatcher {
     const oldUrl = '.gg/hytale';
     const newUrl = '.gg/MHkEjepMQ7';
 
+    // Try length-prefixed format first
+    const lpResult = this.replaceBytes(
+      result,
+      this.stringToLengthPrefixed(oldUrl),
+      this.stringToLengthPrefixed(newUrl)
+    );
+
+    if (lpResult.count > 0) {
+      return { buffer: lpResult.buffer, count: lpResult.count };
+    }
+
+    // Fallback to UTF-16LE
     const oldUtf16 = this.stringToUtf16LE(oldUrl);
     const newUtf16 = this.stringToUtf16LE(newUrl);
 
@@ -168,17 +328,31 @@ class ClientPatcher {
 
   /**
    * Check if the client binary has already been patched
+   * Also verifies the binary actually contains the patched domain
    */
   isPatchedAlready(clientPath) {
     const newDomain = this.getNewDomain();
     const patchFlagFile = clientPath + this.patchedFlag;
+
+    // First check flag file
     if (fs.existsSync(patchFlagFile)) {
       try {
         const flagData = JSON.parse(fs.readFileSync(patchFlagFile, 'utf8'));
         if (flagData.targetDomain === newDomain) {
-          return true;
+          // Verify the binary actually contains the patched domain
+          const data = fs.readFileSync(clientPath);
+          const strategy = this.getDomainStrategy(newDomain);
+          const domainPattern = this.stringToLengthPrefixed(strategy.mainDomain);
+
+          if (data.includes(domainPattern)) {
+            return true;
+          } else {
+            console.log('  Flag exists but binary not patched (was updated?), re-patching...');
+            return false;
+          }
         }
       } catch (e) {
+        // Flag file corrupt or unreadable
       }
     }
     return false;
@@ -189,12 +363,17 @@ class ClientPatcher {
    */
   markAsPatched(clientPath) {
     const newDomain = this.getNewDomain();
+    const strategy = this.getDomainStrategy(newDomain);
     const patchFlagFile = clientPath + this.patchedFlag;
     const flagData = {
       patchedAt: new Date().toISOString(),
       originalDomain: ORIGINAL_DOMAIN,
       targetDomain: newDomain,
-      patcherVersion: '1.0.0'
+      patchMode: strategy.mode,
+      mainDomain: strategy.mainDomain,
+      subdomainPrefix: strategy.subdomainPrefix,
+      patcherVersion: '2.0.0',
+      verified: 'binary_contents'
     };
     fs.writeFileSync(patchFlagFile, JSON.stringify(flagData, null, 2));
   }
@@ -209,6 +388,21 @@ class ClientPatcher {
       fs.copyFileSync(clientPath, backupPath);
       return backupPath;
     }
+
+    // Check if current file differs from backup (might have been updated)
+    const currentSize = fs.statSync(clientPath).size;
+    const backupSize = fs.statSync(backupPath).size;
+
+    if (currentSize !== backupSize) {
+      // File was updated, create timestamped backup of old backup
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, 19);
+      const oldBackupPath = `${clientPath}.original.${timestamp}`;
+      console.log(`  File updated, archiving old backup to ${path.basename(oldBackupPath)}`);
+      fs.renameSync(backupPath, oldBackupPath);
+      fs.copyFileSync(clientPath, backupPath);
+      return backupPath;
+    }
+
     console.log('  Backup already exists');
     return backupPath;
   }
@@ -239,9 +433,16 @@ class ClientPatcher {
    */
   async patchClient(clientPath, progressCallback) {
     const newDomain = this.getNewDomain();
-    console.log('=== Client Patcher ===');
+    const strategy = this.getDomainStrategy(newDomain);
+
+    console.log('=== Client Patcher v2.0 ===');
     console.log(`Target: ${clientPath}`);
-    console.log(`Replacing: ${ORIGINAL_DOMAIN} -> ${newDomain}`);
+    console.log(`Domain: ${newDomain} (${newDomain.length} chars)`);
+    console.log(`Mode: ${strategy.mode}`);
+    if (strategy.mode === 'split') {
+      console.log(`  Subdomain prefix: ${strategy.subdomainPrefix}`);
+      console.log(`  Main domain: ${strategy.mainDomain}`);
+    }
 
     if (!fs.existsSync(clientPath)) {
       const error = `Client binary not found: ${clientPath}`;
@@ -271,13 +472,24 @@ class ClientPatcher {
       progressCallback('Patching domain references...', 50);
     }
 
-    console.log('Patching domain references...');
-    const { buffer: patchedData, count } = this.findAndReplaceDomainSmart(data, ORIGINAL_DOMAIN, newDomain);
+    console.log('Applying domain patches (length-prefixed format)...');
+    const { buffer: patchedData, count } = this.applyDomainPatches(data, newDomain);
 
     console.log('Patching Discord URLs...');
     const { buffer: finalData, count: discordCount } = this.patchDiscordUrl(patchedData);
 
     if (count === 0 && discordCount === 0) {
+      console.log('No occurrences found - trying legacy UTF-16LE format...');
+
+      // Fallback to legacy patching for older binary formats
+      const legacyResult = this.findAndReplaceDomainSmart(data, ORIGINAL_DOMAIN, strategy.mainDomain);
+      if (legacyResult.count > 0) {
+        console.log(`Found ${legacyResult.count} occurrences with legacy format`);
+        fs.writeFileSync(clientPath, legacyResult.buffer);
+        this.markAsPatched(clientPath);
+        return { success: true, patchCount: legacyResult.count, format: 'legacy' };
+      }
+
       console.log('No occurrences found - binary may already be modified or has different format');
       return { success: true, patchCount: 0, warning: 'No occurrences found' };
     }
@@ -310,9 +522,12 @@ class ClientPatcher {
    */
   async patchServer(serverPath, progressCallback) {
     const newDomain = this.getNewDomain();
-    console.log('=== Server Patcher ===');
+    const strategy = this.getDomainStrategy(newDomain);
+
+    console.log('=== Server Patcher v2.0 ===');
     console.log(`Target: ${serverPath}`);
-    console.log(`Replacing: ${ORIGINAL_DOMAIN} -> ${newDomain}`);
+    console.log(`Domain: ${newDomain} (${newDomain.length} chars)`);
+    console.log(`Mode: ${strategy.mode}`);
 
     if (!fs.existsSync(serverPath)) {
       const error = `Server JAR not found: ${serverPath}`;
@@ -344,8 +559,9 @@ class ClientPatcher {
     }
 
     let totalCount = 0;
+    // For server JAR, we use UTF-8 and replace with the main domain part
     const oldUtf8 = this.stringToUtf8(ORIGINAL_DOMAIN);
-    const newUtf8 = this.stringToUtf8(newDomain);
+    const newUtf8 = this.stringToUtf8(strategy.mainDomain);
 
     for (const entry of entries) {
       const name = entry.entryName;
@@ -355,7 +571,7 @@ class ClientPatcher {
         const data = entry.getData();
 
         if (data.includes(oldUtf8)) {
-          const { buffer: patchedData, count } = this.findAndReplaceDomainUtf8(data, ORIGINAL_DOMAIN, newDomain);
+          const { buffer: patchedData, count } = this.findAndReplaceDomainUtf8(data, ORIGINAL_DOMAIN, strategy.mainDomain);
           if (count > 0) {
             zip.updateFile(entry.entryName, patchedData);
             console.log(`  Patched ${count} occurrences in ${name}`);
