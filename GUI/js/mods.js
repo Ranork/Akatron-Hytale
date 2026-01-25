@@ -1,5 +1,5 @@
 
-let API_KEY = "$2a$10$bqk254NMZOWVTzLVJCcxEOmhcyUujKxA5xk.kQCN9q0KNYFJd5b32";
+let CF_API_KEY = "$2a$10$bqk254NMZOWVTzLVJCcxEOmhcyUujKxA5xk.kQCN9q0KNYFJd5b32";
 const CURSEFORGE_API = 'https://api.curseforge.com/v1';
 const HYTALE_GAME_ID = 70216;
 
@@ -13,7 +13,7 @@ let modsTotalPages = 1;
 export async function initModsManager() {
   try {
     if (window.electronAPI && window.electronAPI.getEnvVar) {
-      console.log('Loaded API Key:', API_KEY ? 'Yes' : 'No');
+      console.log('Loaded API Key:', CF_API_KEY ? 'Yes' : 'No');
     }
   } catch (err) {
     console.error('Failed to load API Key:', err);
@@ -196,7 +196,7 @@ async function loadBrowseMods() {
   browseContainer.innerHTML = `<div class="loading-mods"><div class="loading-spinner"></div><span>${window.i18n ? window.i18n.t('mods.loadingMods') : 'Loading mods from CurseForge...'}</span></div>`;
 
   try {
-    if (!API_KEY || API_KEY.length < 10) {
+    if (!CF_API_KEY || CF_API_KEY.length < 10) {
       browseContainer.innerHTML = `
         <div class=\"empty-browse-mods\">
           <i class=\"fas fa-key\"></i>
@@ -223,7 +223,7 @@ async function loadBrowseMods() {
 
     const response = await fetch(url, {
       headers: {
-        'x-api-key': API_KEY,
+        'x-api-key': CF_API_KEY,
         'Accept': 'application/json'
       }
     });

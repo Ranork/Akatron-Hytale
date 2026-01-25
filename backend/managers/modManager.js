@@ -6,7 +6,7 @@ const { getModsPath, getProfilesDir } = require('../core/paths');
 const { saveModsToConfig, loadModsFromConfig } = require('../core/config');
 const profileManager = require('./profileManager');
 
-const API_KEY = process.env.CURSEFORGE_API_KEY;
+const CF_API_KEY = "$2a$10$bqk254NMZOWVTzLVJCcxEOmhcyUujKxA5xk.kQCN9q0KNYFJd5b32";
 
 /**
  * Get the physical mods path for a specific profile.
@@ -120,7 +120,7 @@ async function downloadMod(modInfo) {
     if (!downloadUrl && modInfo.fileId && modInfo.modId) {
       const response = await axios.get(`https://api.curseforge.com/v1/mods/${modInfo.modId || modInfo.curseForgeId}/files/${modInfo.fileId || modInfo.curseForgeFileId}`, {
         headers: {
-          'x-api-key': modInfo.apiKey || API_KEY,
+          'x-api-key': modInfo.apiKey || CF_API_KEY,
           'Accept': 'application/json'
         }
       });
@@ -393,7 +393,7 @@ async function syncModsForCurrentProfile() {
                 ...mod,
                 modId: mod.curseForgeId,
                 fileId: mod.curseForgeFileId || mod.fileId,
-                apiKey: API_KEY
+                apiKey: CF_API_KEY
               });
             } catch (err) {
               console.error(`[ModManager] Auto-repair failed for "${mod.name}": ${err.message}`);

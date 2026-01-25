@@ -30,7 +30,7 @@ let mainWindow;
 let discordRPC = null;
 
 // Discord Rich Presence setup
-const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
+const DISCORD_CLIENT_ID = 1462244937868513373;
 
 function initDiscordRPC() {
   try {
