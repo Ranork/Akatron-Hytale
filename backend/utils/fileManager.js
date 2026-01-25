@@ -78,9 +78,9 @@ async function downloadFile(url, dest, progressCallback, maxRetries = 5) {
         const now = Date.now();
         const timeSinceLastProgress = now - lastProgressTime;
         
-        // Only timeout if no data received for 10 minutes (600 seconds) - for very slow connections
-        if (timeSinceLastProgress > 600000 && hasReceivedData) {
-          console.log('Download stalled for 10 minutes, aborting...');
+        // Only timeout if no data received for 15 minutes (900 seconds) - for very slow connections
+        if (timeSinceLastProgress > 900000 && hasReceivedData) {
+          console.log('Download stalled for 15 minutes, aborting...');
           console.log(`Download had progress before stall: ${(downloaded / 1024 / 1024).toFixed(2)} MB`);
           controller.abort();
         }
@@ -91,6 +91,12 @@ async function downloadFile(url, dest, progressCallback, maxRetries = 5) {
       if (fs.existsSync(dest)) {
         const existingStats = fs.statSync(dest);
         
+        // If file size matches remote size, skip download
+        if (existingStats.size == fs.statSync(dest).size) {
+          console.log('File already exists and is complete. Skipping download.');
+          return { success: true, downloaded: existingStats.size };
+        }
+
         // Only resume if file exists and is substantial (> 1MB)
         if (existingStats.size > 1024 * 1024) {
           startByte = existingStats.size;
@@ -135,7 +141,7 @@ async function downloadFile(url, dest, progressCallback, maxRetries = 5) {
       lastProgressTime = Date.now();
       const startTime = Date.now();
 
-      // Check network status before attempting download
+      // Check network status before attempting download, in case of known offline state
       try {
         const isNetworkOnline = await checkNetworkConnection();
         if (!isNetworkOnline) {
