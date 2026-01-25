@@ -1,6 +1,6 @@
 const path = require('path');
 const fs = require('fs');
-const { markAsLaunched, loadConfig } = require('../core/config');
+const { markAsLaunched, loadConfig, saveVersionBranch, saveVersionClient, loadVersionBranch, loadVersionClient } = require('../core/config');
 const { checkExistingGameInstallation, updateGameFiles } = require('../managers/gameManager');
 const { getInstalledClientVersion, getLatestClientVersion } = require('./versionManager');
 
@@ -55,6 +55,14 @@ async function proposeGameUpdate(existingGame, progressCallback) {
 async function handleFirstLaunchCheck(progressCallback) {
   try {
     const config = loadConfig();
+    
+    // Initialize version_client if not set (but don't force version_branch)
+    const currentVersion = loadVersionClient();
+    
+    if (currentVersion === undefined || currentVersion === null) {
+      console.log('Initializing version_client to null (will trigger installation)');
+      saveVersionClient(null);
+    }
     
     if (config.hasLaunchedBefore === true) {
       return { isFirstLaunch: false, needsUpdate: false };

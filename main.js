@@ -1,10 +1,22 @@
 const path = require('path');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 const { app, BrowserWindow, ipcMain, dialog, shell } = require('electron');
+const { autoUpdater } = require('electron-updater');
 const fs = require('fs');
-const { launchGame, launchGameWithVersionCheck, installGame, saveUsername, loadUsername, saveChatUsername, loadChatUsername, saveChatColor, loadChatColor, saveJavaPath, loadJavaPath, saveInstallPath, loadInstallPath, saveDiscordRPC, loadDiscordRPC, saveLanguage, loadLanguage, saveCloseLauncherOnStart, loadCloseLauncherOnStart, isGameInstalled, uninstallGame, repairGame, getHytaleNews, handleFirstLaunchCheck, proposeGameUpdate, markAsLaunched } = require('./backend/launcher');
+const { launchGame, launchGameWithVersionCheck, installGame, saveUsername, loadUsername, saveChatUsername, loadChatUsername, saveChatColor, loadChatColor, saveJavaPath, loadJavaPath, saveInstallPath, loadInstallPath, saveDiscordRPC, loadDiscordRPC, saveLanguage, loadLanguage, saveCloseLauncherOnStart, loadCloseLauncherOnStart, saveLauncherHardwareAcceleration, loadLauncherHardwareAcceleration, isGameInstalled, uninstallGame, repairGame, getHytaleNews, handleFirstLaunchCheck, proposeGameUpdate, markAsLaunched } = require('./backend/launcher');
+const { retryPWRDownload } = require('./backend/managers/gameManager');
 
-const UpdateManager = require('./backend/updateManager');
+// Handle Hardware Acceleration
+try {
+  const hwEnabled = loadLauncherHardwareAcceleration();
+  if (!hwEnabled) {
+    console.log('Hardware acceleration disabled by user setting');
+    app.disableHardwareAcceleration();
+  }
+} catch (error) {
+  console.error('Failed to load hardware acceleration setting:', error);
+}
+
 const logger = require('./backend/logger');
 const profileManager = require('./backend/managers/profileManager');
 
@@ -26,11 +38,10 @@ if (!gotTheLock) {
 }
 
 let mainWindow;
-let updateManager;
 let discordRPC = null;
 
 // Discord Rich Presence setup
-const DISCORD_CLIENT_ID = process.env.DISCORD_CLIENT_ID;
+const DISCORD_CLIENT_ID = "1462244937868513373";
 
 function initDiscordRPC() {
   try {
@@ -82,7 +93,7 @@ function setDiscordActivity() {
   }
 }
 
-function toggleDiscordRPC(enabled) {
+async function toggleDiscordRPC(enabled) {
   console.log('Toggling Discord RPC:', enabled);
 
   if (enabled && !discordRPC) {
@@ -92,12 +103,13 @@ function toggleDiscordRPC(enabled) {
     try {
       console.log('Disconnecting Discord RPC...');
       discordRPC.clearActivity();
+      await new Promise(r => setTimeout(r, 100));
       discordRPC.destroy();
-      discordRPC = null;
       console.log('Discord RPC disconnected successfully');
     } catch (error) {
       console.error('Error disconnecting Discord RPC:', error.message);
-      discordRPC = null; 
+    } finally {
+      discordRPC = null;
     }
   }
 }
@@ -162,12 +174,59 @@ function createWindow() {
   // Initialize Discord Rich Presence
   initDiscordRPC();
 
-  updateManager = new UpdateManager();
-  setTimeout(async () => {
-    const updateInfo = await updateManager.checkForUpdates();
-    if (updateInfo.updateAvailable) {
-      mainWindow.webContents.send('show-update-popup', updateInfo);
+  // Configure and initialize electron-updater
+  autoUpdater.autoDownload = false;
+  autoUpdater.autoInstallOnAppQuit = true;
+
+  autoUpdater.on('checking-for-update', () => {
+    console.log('Checking for launcher updates...');
+  });
+
+  autoUpdater.on('update-available', (info) => {
+    console.log('Update available:', info.version);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-available', {
+        currentVersion: app.getVersion(),
+        newVersion: info.version,
+        releaseNotes: info.releaseNotes,
+        releaseDate: info.releaseDate
+      });
     }
+  });
+
+  autoUpdater.on('update-not-available', (info) => {
+    console.log('Launcher is up to date:', info.version);
+  });
+
+  autoUpdater.on('error', (err) => {
+    console.error('Error in auto-updater:', err);
+  });
+
+  autoUpdater.on('download-progress', (progressObj) => {
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-download-progress', {
+        percent: progressObj.percent,
+        transferred: progressObj.transferred,
+        total: progressObj.total,
+        bytesPerSecond: progressObj.bytesPerSecond
+      });
+    }
+  });
+
+  autoUpdater.on('update-downloaded', (info) => {
+    console.log('Update downloaded:', info.version);
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('update-downloaded', {
+        version: info.version
+      });
+    }
+  });
+
+  // Check for updates after 3 seconds
+  setTimeout(() => {
+    autoUpdater.checkForUpdates().catch(err => {
+      console.log('Failed to check for updates:', err.message);
+    });
   }, 3000);
 
   mainWindow.webContents.on('devtools-opened', () => {
@@ -193,9 +252,9 @@ function createWindow() {
 
     // Close application shortcuts
     const isMac = process.platform === 'darwin';
-    const quitShortcut = (isMac && input.meta && input.key.toLowerCase() === 'q') || 
-                         (!isMac && input.control && input.key.toLowerCase() === 'q') ||
-                         (!isMac && input.alt && input.key === 'F4');
+    const quitShortcut = (isMac && input.meta && input.key.toLowerCase() === 'q') ||
+      (!isMac && input.control && input.key.toLowerCase() === 'q') ||
+      (!isMac && input.alt && input.key === 'F4');
 
     if (quitShortcut) {
       app.quit();
@@ -263,9 +322,9 @@ app.whenReady().then(async () => {
         mainWindow.webContents.send('lock-play-button', true);
       }
 
-      const progressCallback = (message, percent, speed, downloaded, total) => {
+      const progressCallback = (message, percent, speed, downloaded, total, retryState) => {
         if (mainWindow && !mainWindow.isDestroyed()) {
-          mainWindow.webContents.send('first-launch-progress', { message, percent, speed, downloaded, total });
+          mainWindow.webContents.send('first-launch-progress', { message, percent, speed, downloaded, total, retryState });
         }
       };
 
@@ -320,23 +379,18 @@ app.whenReady().then(async () => {
   }, 3000);
 });
 
-function cleanupDiscordRPC() {
-  if (discordRPC) {
-    try {
-      console.log('Cleaning up Discord RPC...');
-      discordRPC.clearActivity();
-      setTimeout(() => {
-        try {
-          discordRPC.destroy();
-        } catch (error) {
-          console.log('Error during final Discord RPC cleanup:', error.message);
-        }
-      }, 100);
-      discordRPC = null;
-    } catch (error) {
-      console.log('Error cleaning up Discord RPC:', error.message);
-      discordRPC = null;
-    }
+async function cleanupDiscordRPC() {
+  if (!discordRPC) return;
+  try {
+    console.log('Cleaning up Discord RPC...');
+    discordRPC.clearActivity();
+    await new Promise(r => setTimeout(r, 100));
+    discordRPC.destroy();
+    console.log('Discord RPC cleaned up successfully');
+  } catch (error) {
+    console.log('Error cleaning up Discord RPC:', error.message);
+  } finally {
+    discordRPC = null;
   }
 }
 
@@ -347,23 +401,21 @@ app.on('before-quit', () => {
 
 app.on('window-all-closed', () => {
   console.log('=== LAUNCHER CLOSING ===');
-
-  cleanupDiscordRPC();
-
   app.quit();
 });
 
 
 ipcMain.handle('launch-game', async (event, playerName, javaPath, installPath, gpuPreference) => {
   try {
-    const progressCallback = (message, percent, speed, downloaded, total) => {
+    const progressCallback = (message, percent, speed, downloaded, total, retryState) => {
       if (mainWindow && !mainWindow.isDestroyed()) {
         const data = {
           message: message || null,
           percent: percent !== null && percent !== undefined ? Math.min(100, Math.max(0, percent)) : null,
           speed: speed !== null && speed !== undefined ? speed : null,
           downloaded: downloaded !== null && downloaded !== undefined ? downloaded : null,
-          total: total !== null && total !== undefined ? total : null
+          total: total !== null && total !== undefined ? total : null,
+          retryState: retryState || null
         };
         mainWindow.webContents.send('progress-update', data);
       }
@@ -397,44 +449,118 @@ ipcMain.handle('launch-game', async (event, playerName, javaPath, installPath, g
   }
 });
 
-ipcMain.handle('install-game', async (event, playerName, javaPath, installPath) => {
+ipcMain.handle('install-game', async (event, playerName, javaPath, installPath, branch) => {
   try {
+    console.log(`[IPC] install-game called with parameters:`);
+    console.log(`  - playerName: ${playerName}`);
+    console.log(`  - javaPath: ${javaPath}`);
+    console.log(`  - installPath: ${installPath}`);
+    console.log(`  - branch: ${branch}`);
+    console.log(`[IPC] branch type: ${typeof branch}, value: ${JSON.stringify(branch)}`);
+
     // Signal installation start
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('installation-start');
     }
 
-    const progressCallback = (message, percent, speed, downloaded, total) => {
+    const progressCallback = (message, percent, speed, downloaded, total, retryState) => {
       if (mainWindow && !mainWindow.isDestroyed()) {
         const data = {
           message: message || null,
           percent: percent !== null && percent !== undefined ? Math.min(100, Math.max(0, percent)) : null,
           speed: speed !== null && speed !== undefined ? speed : null,
           downloaded: downloaded !== null && downloaded !== undefined ? downloaded : null,
-          total: total !== null && total !== undefined ? total : null
+          total: total !== null && total !== undefined ? total : null,
+          retryState: retryState || null
         };
         mainWindow.webContents.send('progress-update', data);
       }
     };
 
-    const result = await installGame(playerName, progressCallback, javaPath, installPath);
+    const result = await installGame(playerName, progressCallback, javaPath, installPath, branch);
 
     // Signal installation end
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('installation-end');
     }
 
-    return result;
+    // Ensure we always return a result for the IPC handler
+    const successResponse = result || { success: true };
+    console.log('[Main] Returning success response for install-game:', successResponse);
+    return successResponse;
   } catch (error) {
-    console.error('Install error:', error);
+    // console.error('Install error:', error);
     const errorMessage = error.message || error.toString();
+
+    // Enhanced error data extraction for both download and Butler errors
+    let errorData = {
+      message: errorMessage,
+      error: true,
+      canRetry: true, // Default to true, will be overridden by specific error props
+      retryData: null
+    };
+
+    // Prioritize JRE errors first
+    if (error.isJREError) {
+      console.log('[Main] Processing JRE download error with retry context');
+      errorData.retryData = {
+        isJREError: true,
+        jreUrl: error.jreUrl,
+        fileName: error.fileName,
+        cacheDir: error.cacheDir,
+        osName: error.osName,
+        arch: error.arch
+      };
+      // For JRE errors, allow manual retry unless explicitly disabled
+      errorData.canRetry = error.canRetry !== false;
+      errorData.errorType = 'jre';
+    }
+    // Handle Butler-specific errors
+    else if (error.butlerError) {
+      console.log('[Main] Processing Butler error with retry context');
+      errorData.retryData = {
+        branch: error.branch || 'release',
+        fileName: error.fileName || '4.pwr',
+        cacheDir: error.cacheDir
+      };
+      errorData.canRetry = error.canRetry !== false;
+    }
+    // Handle PWR download errors
+    else if (error.branch && error.fileName) {
+      console.log('[Main] Processing PWR download error with retry context');
+      errorData.retryData = {
+        branch: error.branch,
+        fileName: error.fileName,
+        cacheDir: error.cacheDir
+      };
+      errorData.canRetry = error.canRetry !== false;
+    }
+    // Default fallback for other errors
+    else {
+      console.log('[Main] Processing generic error, creating default retry data');
+      errorData.retryData = {
+        branch: 'release',
+        fileName: '4.pwr'
+      };
+      // For generic errors, assume it's retryable unless specified
+      errorData.canRetry = error.canRetry !== false;
+    }
+
+    // Send enhanced error info for retry UI
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      console.log('[Main] Sending error data to renderer:', errorData);
+      mainWindow.webContents.send('progress-update', errorData);
+    }
 
     // Signal installation end on error too
     if (mainWindow && !mainWindow.isDestroyed()) {
       mainWindow.webContents.send('installation-end');
     }
 
-    return { success: false, error: errorMessage };
+    // Always return a proper response to prevent timeout
+    const errorResponse = { success: false, error: errorMessage };
+    console.log('[Main] Returning error response for install-game:', errorResponse);
+    return errorResponse;
   }
 });
 
@@ -510,6 +636,15 @@ ipcMain.handle('load-close-launcher', () => {
   return loadCloseLauncherOnStart();
 });
 
+ipcMain.handle('save-launcher-hw-accel', (event, enabled) => {
+  saveLauncherHardwareAcceleration(enabled);
+  return { success: true };
+});
+
+ipcMain.handle('load-launcher-hw-accel', () => {
+  return loadLauncherHardwareAcceleration();
+});
+
 ipcMain.handle('select-install-path', async () => {
 
   const result = await dialog.showOpenDialog(mainWindow, {
@@ -525,14 +660,15 @@ ipcMain.handle('select-install-path', async () => {
 
 ipcMain.handle('accept-first-launch-update', async (event, existingGame) => {
   try {
-    const progressCallback = (message, percent, speed, downloaded, total) => {
+    const progressCallback = (message, percent, speed, downloaded, total, retryState) => {
       if (mainWindow && !mainWindow.isDestroyed()) {
         const data = {
           message: message || null,
           percent: percent !== null && percent !== undefined ? Math.min(100, Math.max(0, percent)) : null,
           speed: speed !== null && speed !== undefined ? speed : null,
           downloaded: downloaded !== null && downloaded !== undefined ? downloaded : null,
-          total: total !== null && total !== undefined ? total : null
+          total: total !== null && total !== undefined ? total : null,
+          retryState: retryState || null
         };
         mainWindow.webContents.send('first-launch-progress', data);
       }
@@ -574,21 +710,22 @@ ipcMain.handle('uninstall-game', async () => {
   try {
     await uninstallGame();
   } catch (error) {
-    console.error('Uninstall error:', error);
+    // console.error('Uninstall error:', error);
     return { success: false, error: error.message };
   }
 });
 
 ipcMain.handle('repair-game', async () => {
   try {
-    const progressCallback = (message, percent, speed, downloaded, total) => {
+    const progressCallback = (message, percent, speed, downloaded, total, retryState) => {
       if (mainWindow && !mainWindow.isDestroyed()) {
         const data = {
           message: message || null,
           percent: percent !== null && percent !== undefined ? Math.min(100, Math.max(0, percent)) : null,
           speed: speed !== null && speed !== undefined ? speed : null,
           downloaded: downloaded !== null && downloaded !== undefined ? downloaded : null,
-          total: total !== null && total !== undefined ? total : null
+          total: total !== null && total !== undefined ? total : null,
+          retryState: retryState || null
         };
         mainWindow.webContents.send('progress-update', data);
       }
@@ -598,7 +735,98 @@ ipcMain.handle('repair-game', async () => {
     return result;
   } catch (error) {
     console.error('Repair error:', error);
-    return { success: false, error: error.message };
+    const errorMessage = error.message || error.toString();
+    return { success: false, error: errorMessage };
+  }
+});
+
+ipcMain.handle('retry-download', async (event, retryData) => {
+  try {
+    console.log('[IPC] retry-download called with data:', retryData);
+
+    const progressCallback = (message, percent, speed, downloaded, total, retryState) => {
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        const data = {
+          message: message || null,
+          percent: percent !== null && percent !== undefined ? Math.min(100, Math.max(0, percent)) : null,
+          speed: speed !== null && speed !== undefined ? speed : null,
+          downloaded: downloaded !== null && downloaded !== undefined ? downloaded : null,
+          total: total !== null && total !== undefined ? total : null,
+          retryState: retryState || null
+        };
+        mainWindow.webContents.send('progress-update', data);
+      }
+    };
+
+    // Handle JRE download retries
+    if (retryData && retryData.isJREError) {
+      console.log(`[IPC] Retrying JRE download: jreUrl=${retryData.jreUrl}, fileName=${retryData.fileName}`);
+      console.log('[IPC] Full JRE retry data:', JSON.stringify(retryData, null, 2));
+
+      const { retryJREDownload } = require('./backend/managers/javaManager');
+      const jreCacheFile = path.join(retryData.cacheDir, retryData.fileName);
+      await retryJREDownload(retryData.jreUrl, jreCacheFile, progressCallback);
+
+      return { success: true };
+    }
+
+    // Handle PWR download retries (default)
+    if (!retryData || !retryData.branch || !retryData.fileName) {
+      console.log('[IPC] Invalid retry data, using PWR defaults');
+      retryData = {
+        branch: 'release',
+        fileName: '4.pwr'
+      };
+    }
+
+    // Extract PWR download info from retryData
+    const branch = retryData.branch;
+    const fileName = retryData.fileName;
+    const cacheDir = retryData.cacheDir;
+
+    console.log(`[IPC] Retrying PWR download: branch=${branch}, fileName=${fileName}`);
+    console.log('[IPC] Full PWR retry data:', JSON.stringify(retryData, null, 2));
+
+    // Perform retry with enhanced context
+    await retryPWRDownload(branch, fileName, progressCallback, cacheDir);
+
+    return { success: true };
+  } catch (error) {
+    console.error('Retry download error:', error);
+    const errorMessage = error.message || error.toString();
+
+    // Send error update to frontend with context
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      const isJreError = retryData?.isJREError;
+      const errorRetryData = isJreError ?
+        {
+          isJREError: true,
+          jreUrl: retryData?.jreUrl,
+          fileName: retryData?.fileName,
+          cacheDir: retryData?.cacheDir,
+          osName: retryData?.osName,
+          arch: retryData?.arch
+        } :
+        {
+          branch: retryData?.branch || 'release',
+          fileName: retryData?.fileName || '4.pwr',
+          cacheDir: retryData?.cacheDir
+        };
+
+      const data = {
+        message: errorMessage,
+        error: true,
+        canRetry: error.canRetry !== false, // Respect canRetry from the thrown error
+        retryData: errorRetryData,
+        errorType: isJreError ? 'jre' : 'general' // Add errorType for the UI
+      };
+      mainWindow.webContents.send('progress-update', data);
+    }
+
+    // Always return a proper response to prevent timeout
+    const errorResponse = { success: false, error: errorMessage };
+    console.log('[Main] Returning error response for retry-download:', errorResponse);
+    return errorResponse;
   }
 });
 
@@ -624,8 +852,9 @@ ipcMain.handle('open-external', async (event, url) => {
 
 ipcMain.handle('open-game-location', async () => {
   try {
-    const { getResolvedAppDir } = require('./backend/launcher');
-    const gameDir = path.join(getResolvedAppDir(), 'release', 'package', 'game');
+    const { getResolvedAppDir, loadVersionBranch } = require('./backend/launcher');
+    const branch = loadVersionBranch();
+    const gameDir = path.join(getResolvedAppDir(), branch, 'package', 'game');
 
     if (fs.existsSync(gameDir)) {
       await shell.openPath(gameDir);
@@ -823,33 +1052,37 @@ ipcMain.handle('copy-mod-file', async (event, sourcePath, modsPath) => {
   }
 });
 
+// Electron-updater IPC handlers
 ipcMain.handle('check-for-updates', async () => {
   try {
-    return await updateManager.checkForUpdates();
+    const result = await autoUpdater.checkForUpdates();
+    return {
+      updateAvailable: result && result.updateInfo,
+      currentVersion: app.getVersion(),
+      updateInfo: result ? result.updateInfo : null
+    };
   } catch (error) {
     console.error('Error checking for updates:', error);
     return { updateAvailable: false, error: error.message };
   }
 });
 
-ipcMain.handle('open-download-page', async () => {
+ipcMain.handle('download-update', async () => {
   try {
-    await shell.openExternal(updateManager.getDownloadUrl());
-
-    setTimeout(() => {
-      app.quit();
-    }, 1000);
-
-
+    await autoUpdater.downloadUpdate();
     return { success: true };
   } catch (error) {
-    console.error('Error opening download page:', error);
+    console.error('Error downloading update:', error);
     return { success: false, error: error.message };
   }
 });
 
-ipcMain.handle('get-update-info', async () => {
-  return updateManager.getUpdateInfo();
+ipcMain.handle('install-update', () => {
+  autoUpdater.quitAndInstall(false, true);
+});
+
+ipcMain.handle('get-launcher-version', () => {
+  return app.getVersion();
 });
 
 ipcMain.handle('get-gpu-info', () => {
@@ -879,6 +1112,22 @@ ipcMain.handle('get-detected-gpu', () => {
   const { detectGpu } = require('./backend/launcher');
   global.detectedGpu = detectGpu();
   return global.detectedGpu;
+});
+
+ipcMain.handle('save-version-branch', (event, branch) => {
+  const { saveVersionBranch } = require('./backend/launcher');
+  saveVersionBranch(branch);
+  return { success: true };
+});
+
+ipcMain.handle('load-version-branch', () => {
+  const { loadVersionBranch } = require('./backend/launcher');
+  return loadVersionBranch();
+});
+
+ipcMain.handle('load-version-client', () => {
+  const { loadVersionClient } = require('./backend/launcher');
+  return loadVersionClient();
 });
 
 ipcMain.handle('window-close', () => {

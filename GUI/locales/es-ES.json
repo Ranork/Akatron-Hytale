@@ -15,6 +15,9 @@
     "title": "LAUNCHER GRATUITO",
     "playerName": "Nombre del Jugador",
     "playerNamePlaceholder": "Ingresa tu nombre",
+    "gameBranch": "Versión del Juego",
+    "releaseVersion": "Lanzamiento (Estable)",
+    "preReleaseVersion": "Pre-Lanzamiento (Experimental)",
     "customInstallation": "Instalación Personalizada",
     "installationFolder": "Carpeta de Instalación",
     "pathPlaceholder": "Ubicación predeterminada",
@@ -54,7 +57,9 @@
     "noDescription": "Sin descripción disponible",
     "confirmDelete": "¿Estás seguro de que quieres eliminar \"{name}\"?",
     "confirmDeleteDesc": "Esta acción no se puede deshacer.",
-    "confirmDeletion": "Confirmar eliminación"
+    "confirmDeletion": "Confirmar eliminación",
+    "apiKeyRequired": "Clave API Requerida",
+    "apiKeyRequiredDesc": "Se necesita una clave API de CurseForge para explorar mods"
   },
   "news": {
     "title": "TODAS LAS NOTICIAS",
@@ -125,7 +130,16 @@
     "logsLoading": "Cargando registros...",
     "closeLauncher": "Comportamiento del Launcher",
     "closeOnStart": "Cerrar Launcher al iniciar el juego",
-    "closeOnStartDescription": "Cierra automáticamente el launcher después de que Hytale se haya iniciado"
+    "closeOnStartDescription": "Cierra automáticamente el launcher después de que Hytale se haya iniciado",
+    "gameBranch": "Rama del Juego",
+    "branchRelease": "Lanzamiento",
+    "branchPreRelease": "Pre-Lanzamiento",
+    "branchHint": "Cambia entre la versión estable y la versión experimental de pre-lanzamiento",
+    "branchWarning": "Cambiar de rama descargará e instalará una versión diferente del juego",
+    "branchSwitching": "Cambiando a {branch}...",
+    "branchSwitched": "¡Cambiado a {branch} con éxito!",
+    "installRequired": "Instalación Requerida",
+    "branchInstallConfirm": "El juego se instalará para la rama {branch}. ¿Continuar?"
   },
   "uuid": {
     "modalTitle": "Gestión de UUID",
@@ -157,7 +171,8 @@
     "delete": "Eliminar",
     "edit": "Editar",
     "loading": "Cargando...",
-    "apply": "Aplicar"
+    "apply": "Aplicar",
+    "install": "Instalar"
   },
   "notifications": {
     "gameDataNotFound": "Error: No se encontraron datos del juego",

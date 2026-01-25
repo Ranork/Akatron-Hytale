@@ -19,6 +19,12 @@ const {
   loadLanguage,
   saveCloseLauncherOnStart,
   loadCloseLauncherOnStart,
+
+  // Hardware Acceleration
+  saveLauncherHardwareAcceleration,
+  loadLauncherHardwareAcceleration,
+
+
   saveModsToConfig,
   loadModsFromConfig,
   getUuidForUser,
@@ -33,7 +39,12 @@ const {
   resetCurrentUserUuid,
   // GPU Preference
   saveGpuPreference,
-  loadGpuPreference
+  loadGpuPreference,
+  // Version Management
+  saveVersionClient,
+  loadVersionClient,
+  saveVersionBranch,
+  loadVersionBranch
 } = require('./core/config');
 
 const { getResolvedAppDir, getModsPath } = require('./core/paths');
@@ -71,7 +82,6 @@ const {
 
 // Services
 const {
-  getInstalledClientVersion,
   getLatestClientVersion
 } = require('./services/versionManager');
 
@@ -121,23 +131,30 @@ module.exports = {
   // Discord RPC functions
   saveDiscordRPC,
   loadDiscordRPC,
-  
+
   // Language functions
   saveLanguage,
   loadLanguage,
-  
+
   // Close Launcher functions
   saveCloseLauncherOnStart,
   loadCloseLauncherOnStart,
-  
+
+  // Hardware Acceleration functions
+  saveLauncherHardwareAcceleration,
+  loadLauncherHardwareAcceleration,
+
   // GPU Preference functions
   saveGpuPreference,
   loadGpuPreference,
   detectGpu,
-  
+
   // Version functions
-  getInstalledClientVersion,
   getLatestClientVersion,
+  saveVersionClient,
+  loadVersionClient,
+  saveVersionBranch,
+  loadVersionBranch,
 
   // News functions
   getHytaleNews,

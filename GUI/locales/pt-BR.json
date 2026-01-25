@@ -14,8 +14,9 @@
   "install": {
     "title": "LANÇADOR JOGO GRATUITO",
     "playerName": "Nome do Jogador",
-    "playerNamePlaceholder": "Digite seu nome",
-    "customInstallation": "Instalação Personalizada",
+    "playerNamePlaceholder": "Digite seu nome",    "gameBranch": "Versão do Jogo",
+    "releaseVersion": "Lançamento (Estável)",
+    "preReleaseVersion": "Pré-Lançamento (Experimental)",    "customInstallation": "Instalação Personalizada",
     "installationFolder": "Pasta de Instalação",
     "pathPlaceholder": "Local padrão",
     "browse": "Procurar",
@@ -54,7 +55,9 @@
     "noDescription": "Nenhuma descrição disponível",
     "confirmDelete": "Tem certeza de que deseja excluir \"{name}\"?",
     "confirmDeleteDesc": "Esta ação não pode ser desfeita.",
-    "confirmDeletion": "Confirmar exclusão"
+    "confirmDeletion": "Confirmar exclusão",
+    "apiKeyRequired": "Chave de API Necessária",
+    "apiKeyRequiredDesc": "Chave de API do CurseForge é necessária para procurar mods"
   },
   "news": {
     "title": "TODAS AS NOTÍCIAS",
@@ -125,7 +128,16 @@
     "logsLoading": "Carregando registros...",
     "closeLauncher": "Comportamento do Lançador",
     "closeOnStart": "Fechar Lançador ao iniciar o jogo",
-    "closeOnStartDescription": "Fechar automaticamente o lançador após o Hytale ter sido iniciado"
+    "closeOnStartDescription": "Fechar automaticamente o lançador após o Hytale ter sido iniciado",
+    "gameBranch": "Versão do Jogo",
+    "branchRelease": "Lançamento",
+    "branchPreRelease": "Pré-Lançamento",
+    "branchHint": "Alterne entre a versão estável e a versão experimental de pré-lançamento",
+    "branchWarning": "Mudar de versão irá baixar e instalar uma versão diferente do jogo",
+    "branchSwitching": "Mudando para {branch}...",
+    "branchSwitched": "Mudado para {branch} com sucesso!",
+    "installRequired": "Instalação Necessária",
+    "branchInstallConfirm": "O jogo será instalado para o ramo {branch}. Continuar?"
   },
   "uuid": {
     "modalTitle": "Gerenciamento de UUID",
@@ -158,7 +170,8 @@
     "delete": "Excluir",
     "edit": "Editar",
     "loading": "Carregando...",
-    "apply": "Aplicar"
+    "apply": "Aplicar",
+    "install": "Instalar"
   },
   "notifications": {
     "gameDataNotFound": "Erro: Dados do jogo não encontrados",

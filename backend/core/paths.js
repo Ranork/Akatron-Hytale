@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
+const { loadVersionBranch } = require('./config');
 
 function getAppDir() {
   const home = os.homedir();
@@ -48,8 +49,20 @@ function expandHome(inputPath) {
 const APP_DIR = DEFAULT_APP_DIR;
 const CACHE_DIR = path.join(APP_DIR, 'cache');
 const TOOLS_DIR = path.join(APP_DIR, 'butler');
-const GAME_DIR = path.join(APP_DIR, 'release', 'package', 'game', 'latest');
-const JRE_DIR = path.join(APP_DIR, 'release', 'package', 'jre', 'latest');
+
+// Dynamic GAME_DIR and JRE_DIR based on version_branch from config
+function getGameDir() {
+  const branch = loadVersionBranch();
+  return path.join(APP_DIR, branch, 'package', 'game', 'latest');
+}
+
+function getJreDir() {
+  const branch = loadVersionBranch();
+  return path.join(APP_DIR, branch, 'package', 'jre', 'latest');
+}
+
+const GAME_DIR = getGameDir();
+const JRE_DIR = getJreDir();
 const PLAYER_ID_FILE = path.join(APP_DIR, 'player_id.json');
 
 function getClientCandidates(gameLatest) {
@@ -156,7 +169,8 @@ async function getModsPath(customInstallPath = null) {
       installPath = getAppDir();
     }
 
-    const gameLatest = path.join(installPath, 'release', 'package', 'game', 'latest');
+    const branch = loadVersionBranch();
+    const gameLatest = path.join(installPath, branch, 'package', 'game', 'latest');
 
     const userDataPath = findUserDataPath(gameLatest);
 
@@ -195,7 +209,8 @@ function getProfilesDir(customInstallPath = null) {
     }
     if (!installPath) installPath = getAppDir();
     
-    const gameLatest = path.join(installPath, 'release', 'package', 'game', 'latest');
+    const branch = loadVersionBranch();
+    const gameLatest = path.join(installPath, branch, 'package', 'game', 'latest');
     const userDataPath = findUserDataPath(gameLatest);
     const profilesDir = path.join(userDataPath, 'Profiles');
     
@@ -219,6 +234,8 @@ module.exports = {
   TOOLS_DIR,
   GAME_DIR,
   JRE_DIR,
+  getGameDir,
+  getJreDir,
   PLAYER_ID_FILE,
   getClientCandidates,
   findClientPath,

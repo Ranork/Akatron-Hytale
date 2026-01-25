@@ -2,7 +2,7 @@ const { contextBridge, ipcRenderer } = require('electron');
 
 contextBridge.exposeInMainWorld('electronAPI', {
   launchGame: (playerName, javaPath, installPath, gpuPreference) => ipcRenderer.invoke('launch-game', playerName, javaPath, installPath, gpuPreference),
-  installGame: (playerName, javaPath, installPath) => ipcRenderer.invoke('install-game', playerName, javaPath, installPath),
+  installGame: (playerName, javaPath, installPath, branch) => ipcRenderer.invoke('install-game', playerName, javaPath, installPath, branch),
   closeWindow: () => ipcRenderer.invoke('window-close'),
   minimizeWindow: () => ipcRenderer.invoke('window-minimize'),
   maximizeWindow: () => ipcRenderer.invoke('window-maximize'),
@@ -23,11 +23,17 @@ contextBridge.exposeInMainWorld('electronAPI', {
   loadLanguage: () => ipcRenderer.invoke('load-language'),
   saveCloseLauncher: (enabled) => ipcRenderer.invoke('save-close-launcher', enabled),
   loadCloseLauncher: () => ipcRenderer.invoke('load-close-launcher'),
+
+  // Harwadre Acceleration
+  saveLauncherHardwareAcceleration: (enabled) => ipcRenderer.invoke('save-launcher-hw-accel', enabled),
+  loadLauncherHardwareAcceleration: () => ipcRenderer.invoke('load-launcher-hw-accel'),
+
   selectInstallPath: () => ipcRenderer.invoke('select-install-path'),
   browseJavaPath: () => ipcRenderer.invoke('browse-java-path'),
   isGameInstalled: () => ipcRenderer.invoke('is-game-installed'),
   uninstallGame: () => ipcRenderer.invoke('uninstall-game'),
   repairGame: () => ipcRenderer.invoke('repair-game'),
+  retryDownload: (retryData) => ipcRenderer.invoke('retry-download', retryData),
   getHytaleNews: () => ipcRenderer.invoke('get-hytale-news'),
   openExternal: (url) => ipcRenderer.invoke('open-external', url),
   openExternalLink: (url) => ipcRenderer.invoke('openExternalLink', url),
@@ -44,7 +50,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   selectModFiles: () => ipcRenderer.invoke('select-mod-files'),
   copyModFile: (sourcePath, modsPath) => ipcRenderer.invoke('copy-mod-file', sourcePath, modsPath),
   onProgressUpdate: (callback) => {
-    ipcRenderer.on('progress-update', (event, data) => callback(data));
+    ipcRenderer.on('progress-update', (event, data) => {
+      // Ensure data includes retry state if available
+      if (data && typeof data === 'object') {
+        callback(data);
+      } else {
+        callback(data);
+      }
+    });
   },
   onProgressComplete: (callback) => {
     ipcRenderer.on('progress-complete', () => callback());
@@ -67,6 +80,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveGpuPreference: (gpuPreference) => ipcRenderer.invoke('save-gpu-preference', gpuPreference),
   loadGpuPreference: () => ipcRenderer.invoke('load-gpu-preference'),
   getDetectedGpu: () => ipcRenderer.invoke('get-detected-gpu'),
+
+  saveVersionBranch: (branch) => ipcRenderer.invoke('save-version-branch', branch),
+  loadVersionBranch: () => ipcRenderer.invoke('load-version-branch'),
+  loadVersionClient: () => ipcRenderer.invoke('load-version-client'),
 
   acceptFirstLaunchUpdate: (existingGame) => ipcRenderer.invoke('accept-first-launch-update', existingGame),
   markAsLaunched: () => ipcRenderer.invoke('mark-as-launched'),
@@ -103,5 +120,23 @@ contextBridge.exposeInMainWorld('electronAPI', {
     activate: (id) => ipcRenderer.invoke('profile-activate', id),
     delete: (id) => ipcRenderer.invoke('profile-delete', id),
     update: (id, updates) => ipcRenderer.invoke('profile-update', id, updates)
+  },
+
+  // Launcher Update API
+  checkForUpdates: () => ipcRenderer.invoke('check-for-updates'),
+  downloadUpdate: () => ipcRenderer.invoke('download-update'),
+  installUpdate: () => ipcRenderer.invoke('install-update'),
+  getLauncherVersion: () => ipcRenderer.invoke('get-launcher-version'),
+  onUpdateAvailable: (callback) => {
+    ipcRenderer.on('update-available', (event, data) => callback(data));
+  },
+  onUpdateDownloadProgress: (callback) => {
+    ipcRenderer.on('update-download-progress', (event, data) => callback(data));
+  },
+  onUpdateDownloaded: (callback) => {
+    ipcRenderer.on('update-downloaded', (event, data) => callback(data));
+  },
+  onUpdateError: (callback) => {
+    ipcRenderer.on('update-error', (event, data) => callback(data));
   }
 });

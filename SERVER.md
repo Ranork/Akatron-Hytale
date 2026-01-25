@@ -188,7 +188,7 @@ Set these before running to customize your server:
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `HYTALE_SERVER_URL` | (placeholder) | URL to download pre-patched server JAR |
-| `HYTALE_AUTH_DOMAIN` | `sanasol.ws` | Auth server domain |
+| `HYTALE_AUTH_DOMAIN` | `auth.sanasol.ws` | Auth server domain (4-16 chars) |
 | `HYTALE_BIND` | `0.0.0.0:5520` | Server IP and port |
 | `HYTALE_AUTH_MODE` | `authenticated` | Auth mode (see below) |
 | `HYTALE_SERVER_NAME` | `My Hytale Server` | Server display name |
@@ -400,7 +400,7 @@ docker run -d \
   --name hytale-server \
   -p 5520:5520/udp \
   -v ./data:/data \
-  -e HYTALE_AUTH_DOMAIN=sanasol.ws \
+  -e HYTALE_AUTH_DOMAIN=auth.sanasol.ws \
   -e HYTALE_SERVER_NAME="My Server" \
   -e JVM_XMX=8G \
   ghcr.io/hybrowse/hytale-server-docker:latest

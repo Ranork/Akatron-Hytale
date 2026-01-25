@@ -1,5 +1,5 @@
 
-let API_KEY = null;
+let API_KEY = "$2a$10$bqk254NMZOWVTzLVJCcxEOmhcyUujKxA5xk.kQCN9q0KNYFJd5b32";
 const CURSEFORGE_API = 'https://api.curseforge.com/v1';
 const HYTALE_GAME_ID = 70216;
 
@@ -13,7 +13,6 @@ let modsTotalPages = 1;
 export async function initModsManager() {
   try {
     if (window.electronAPI && window.electronAPI.getEnvVar) {
-      API_KEY = await window.electronAPI.getEnvVar('CURSEFORGE_API_KEY');
       console.log('Loaded API Key:', API_KEY ? 'Yes' : 'No');
     }
   } catch (err) {
@@ -201,10 +200,15 @@ async function loadBrowseMods() {
       browseContainer.innerHTML = `
         <div class=\"empty-browse-mods\">
           <i class=\"fas fa-key\"></i>
-          <h4>API Key Required</h4>
-          <p>CurseForge API key is needed to browse mods</p>
+          <h4 data-i18n="mods.apiKeyRequired">API Key Required</h4>
+          <p data-i18n="mods.apiKeyRequiredDesc">CurseForge API key is needed to browse mods</p>
         </div>
       `;
+      if (window.i18n) {
+        const container = modsContainer.querySelector('.empty-browse-mods');
+        container.querySelector('h4').textContent = window.i18n.t('mods.apiKeyRequired');
+        container.querySelector('p').textContent = window.i18n.t('mods.apiKeyRequiredDesc');
+      }
       return;
     }
 

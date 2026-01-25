@@ -3,7 +3,7 @@ name: Build and Release
 on:
   push:
     branches:
-      - release
+      - main
     tags:
       - 'v*'
   workflow_dispatch:
@@ -13,7 +13,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      # FIX Install bsdtar for Pacman builds
       - name: Install build dependencies
         run: |
           sudo apt-get update
@@ -24,14 +23,6 @@ jobs:
           node-version: '22'
           cache: 'npm'
       - run: npm ci
-
-      - name: Create .env file
-        env:
-          CF_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-          DISCORD_ID: ${{ secrets.DISCORD_CLIENT_ID }}
-        run: |
-          echo "CURSEFORGE_API_KEY=$CF_KEY" > .env
-          echo "DISCORD_CLIENT_ID=$DISCORD_ID" >> .env
 
       - name: Build Linux Packages
         run: |
@@ -44,7 +35,7 @@ jobs:
             dist/*.AppImage.blockmap
             dist/*.deb
             dist/*.rpm
-            dist/*.pacman
+            dist/*.pkg.tar.zst
             dist/latest-linux.yml
 
   build-windows:
@@ -57,14 +48,6 @@ jobs:
           cache: 'npm'
       - run: npm ci
       
-      - name: Create .env file
-        env:
-          CF_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-          DISCORD_ID: ${{ secrets.DISCORD_CLIENT_ID }}
-        run: |
-          echo "CURSEFORGE_API_KEY=$CF_KEY" > .env
-          echo "DISCORD_CLIENT_ID=$DISCORD_ID" >> .env
-
       - name: Build Windows Packages
         run: npx electron-builder --win --publish never
       - uses: actions/upload-artifact@v4
@@ -85,15 +68,7 @@ jobs:
           cache: 'npm'
       - run: npm ci
 
-      - name: Create .env file
-        env:
-          CF_KEY: ${{ secrets.CURSEFORGE_API_KEY }}
-          DISCORD_ID: ${{ secrets.DISCORD_CLIENT_ID }}
-        run: |
-          echo "CURSEFORGE_API_KEY=$CF_KEY" > .env
-          echo "DISCORD_CLIENT_ID=$DISCORD_ID" >> .env
-
-      - name: Build Windows Packages
+      - name: Build macOS Packages
         run: npx electron-builder --mac --publish never
       - uses: actions/upload-artifact@v4
         with:
@@ -108,7 +83,7 @@ jobs:
     runs-on: ubuntu-latest
     if: |
       startsWith(github.ref, 'refs/tags/v') || 
-      github.ref == 'refs/heads/release' || 
+      github.ref == 'refs/heads/main' || 
       github.event_name == 'workflow_dispatch'
 
     permissions:
@@ -137,12 +112,12 @@ jobs:
           # If it's a tag, use the tag. 
           tag_name: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}.r{1}', steps.pkg_version.outputs.VERSION, github.run_number) }}
           # If it's the 'release' branch, use 'v2.0.2-beta.r42'
-          name: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}-beta.r{1}', steps.pkg_version.outputs.VERSION, github.run_number) }}
+          # name: ${{ github.ref_type == 'tag' && github.ref_name || format('v{0}-beta.r{1}', steps.pkg_version.outputs.VERSION, github.run_number) }}
           files: |
             artifacts/linux-builds/**/*
             artifacts/windows-builds/**/*
             artifacts/macos-builds/**/*
           generate_release_notes: true
           draft: true
-          # DYNAMIC FLAGS: Mark as pre-release ONLY IF it's NOT a tag (meaning it's a branch push)
-          prerelease: ${{ github.ref_type != 'tag' }}
+          prerelease: false
+          

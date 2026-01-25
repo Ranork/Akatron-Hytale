@@ -662,6 +662,57 @@ body {
     box-shadow: none;
 }
 
+/* Radio buttons for install page */
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.radio-label {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.05);
+    border: 2px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.radio-label:hover {
+    background: rgba(255, 255, 255, 0.08);
+    border-color: rgba(147, 51, 234, 0.5);
+}
+
+.radio-label .custom-radio {
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.radio-label .custom-radio:checked ~ .radio-text {
+    color: #9333ea;
+}
+
+.radio-label:has(.custom-radio:checked) {
+    background: rgba(147, 51, 234, 0.15);
+    border-color: #9333ea;
+    box-shadow: 0 0 20px rgba(147, 51, 234, 0.2);
+}
+
+.radio-text {
+    display: flex;
+    align-items: center;
+    color: #d1d5db;
+    font-weight: 500;
+    transition: color 0.3s ease;
+}
+
+.radio-text i {
+    margin-right: 0.5rem;
+}
+
 .launcher-container {
     flex: 1;
     display: flex;
@@ -1729,6 +1780,243 @@ body {
     }
 }
 
+/* Progress Error and Retry Styles */
+.progress-error-container {
+    margin-top: 0.75rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid rgba(239, 68, 68, 0.3);
+    animation: errorSlideIn 0.3s ease-out;
+}
+
+@keyframes errorSlideIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.progress-error-message {
+    color: #f87171;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 0 0 8px rgba(248, 113, 113, 0.4);
+    line-height: 1.4;
+}
+
+.progress-retry-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.progress-retry-buttons {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.progress-retry-info {
+    color: #fbbf24;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.7rem;
+    flex: 1;
+}
+
+.progress-retry-btn {
+    background: linear-gradient(135deg, #dc2626, #ef4444);
+    color: white;
+    border: none;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(220, 38, 38, 0.3);
+    white-space: nowrap;
+    min-width: 120px;
+}
+
+.progress-retry-btn:hover {
+    background: linear-gradient(135deg, #b91c1c, #dc2626);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(220, 38, 38, 0.4);
+}
+
+.progress-retry-btn:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(220, 38, 38, 0.3);
+}
+
+.progress-retry-btn:disabled {
+    background: linear-gradient(135deg, #4b5563, #6b7280);
+    cursor: not-allowed;
+    transform: none;
+    box-shadow: none;
+    opacity: 0.6;
+}
+
+/* Progress overlay error state */
+.progress-overlay.error-state {
+    border-color: rgba(239, 68, 68, 0.5);
+    box-shadow:
+        0 4px 16px rgba(0, 0, 0, 0.5),
+        0 0 30px rgba(239, 68, 68, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.05);
+}
+
+.progress-overlay.error-state #progressBarFill {
+    background: linear-gradient(90deg, #dc2626, #ef4444);
+    animation: errorPulse 1.5s ease-in-out infinite;
+}
+
+@keyframes errorPulse {
+    0%, 100% {
+        opacity: 0.8;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
+/* Error type specific styling */
+.progress-error-container.error-network {
+    border-top-color: rgba(59, 130, 246, 0.5);
+}
+
+.progress-error-container.error-network .progress-error-message {
+    color: #60a5fa;
+    text-shadow: 0 0 8px rgba(96, 165, 250, 0.4);
+}
+
+.progress-error-container.error-stall {
+    border-top-color: rgba(245, 158, 11, 0.5);
+}
+
+.progress-error-container.error-stall .progress-error-message {
+    color: #fbbf24;
+    text-shadow: 0 0 8px rgba(251, 191, 36, 0.4);
+}
+
+.progress-error-container.error-file {
+    border-top-color: rgba(239, 68, 68, 0.5);
+}
+
+.progress-error-container.error-file .progress-error-message {
+    color: #f87171;
+    text-shadow: 0 0 8px rgba(248, 113, 113, 0.4);
+}
+
+.progress-error-container.error-permission {
+    border-top-color: rgba(168, 85, 247, 0.5);
+}
+
+.progress-error-container.error-permission .progress-error-message {
+    color: #a855f7;
+    text-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+}
+
+.progress-error-container.error-server {
+    border-top-color: rgba(236, 72, 153, 0.5);
+}
+
+.progress-error-container.error-server .progress-error-message {
+    color: #ec4899;
+    text-shadow: 0 0 8px rgba(236, 72, 153, 0.4);
+}
+
+.progress-error-container.error-corruption {
+    border-top-color: rgba(220, 38, 38, 0.8);
+}
+
+.progress-error-container.error-corruption .progress-error-message {
+    color: #dc2626;
+    text-shadow: 0 0 8px rgba(220, 38, 38, 0.6);
+    font-weight: 600;
+}
+
+.progress-error-container.error-butler {
+    border-top-color: rgba(245, 158, 11, 0.5);
+}
+
+.progress-error-container.error-butler .progress-error-message {
+    color: #f59e0b;
+    text-shadow: 0 0 8px rgba(245, 158, 11, 0.4);
+}
+
+.progress-error-container.error-space {
+    border-top-color: rgba(168, 85, 247, 0.5);
+}
+
+.progress-error-container.error-space .progress-error-message {
+    color: #a855f7;
+    text-shadow: 0 0 8px rgba(168, 85, 247, 0.4);
+}
+
+.progress-error-container.error-conflict {
+    border-top-color: rgba(6, 182, 212, 0.5);
+}
+
+.progress-error-container.error-conflict .progress-error-message {
+    color: #06b6d4;
+    text-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+}
+
+/* Connection quality indicators */
+.progress-details {
+    transition: all 0.3s ease;
+}
+
+.progress-details #progressSize {
+    transition: color 0.5s ease;
+}
+
+/* Enhanced retry button states */
+.progress-retry-btn.retrying {
+    background: linear-gradient(135deg, #059669, #10b981);
+    animation: retryingPulse 1s ease-in-out infinite;
+}
+
+@keyframes retryingPulse {
+    0%, 100% {
+        transform: scale(1);
+        box-shadow: 0 2px 8px rgba(5, 150, 105, 0.3);
+    }
+    50% {
+        transform: scale(1.05);
+        box-shadow: 0 4px 12px rgba(5, 150, 105, 0.4);
+    }
+}
+
+/* Network status indicator (optional future enhancement) */
+.network-status {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: #10b981;
+    box-shadow: 0 0 6px rgba(16, 185, 129, 0.6);
+}
+
+.network-status.poor {
+    background: #f87171;
+    box-shadow: 0 0 6px rgba(248, 113, 113, 0.6);
+}
+
+.network-status.fair {
+    background: #fbbf24;
+    box-shadow: 0 0 6px rgba(251, 191, 36, 0.6);
+}
+
 .progress-bar-fill {
     height: 100%;
     background: linear-gradient(90deg,
@@ -1795,70 +2083,6 @@ body {
 }
 
 /* Installation effects */
-.installation-effects {
-    position: fixed;
-    top: 0;
-    left: 80px;
-    width: calc(100% - 80px);
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(10px);
-    z-index: 40;
-    pointer-events: auto;
-    overflow: hidden;
-}
-
-.space-effects {
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    perspective: 1000px;
-}
-
-.warp-line {
-    position: absolute;
-    width: 2px;
-    height: 100%;
-    background: linear-gradient(180deg, 
-        transparent 0%, 
-        rgba(147, 51, 234, 0.8) 50%, 
-        transparent 100%);
-    box-shadow: 0 0 10px rgba(147, 51, 234, 0.8),
-                0 0 20px rgba(147, 51, 234, 0.4);
-    animation: warpSpeed 1.5s linear infinite;
-    opacity: 0;
-}
-
-.warp-line:nth-child(1) { left: 10%; animation-delay: 0s; }
-.warp-line:nth-child(2) { left: 25%; animation-delay: 0.2s; }
-.warp-line:nth-child(3) { left: 40%; animation-delay: 0.4s; }
-.warp-line:nth-child(4) { left: 55%; animation-delay: 0.6s; }
-.warp-line:nth-child(5) { left: 70%; animation-delay: 0.8s; }
-.warp-line:nth-child(6) { left: 85%; animation-delay: 1s; }
-.warp-line:nth-child(7) { left: 15%; animation-delay: 0.3s; }
-.warp-line:nth-child(8) { left: 60%; animation-delay: 0.7s; }
-
-@keyframes warpSpeed {
-    0% {
-        transform: translateY(-100%) scaleY(0);
-        opacity: 0;
-    }
-    10% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 1;
-        transform: translateY(0%) scaleY(1);
-    }
-    90% {
-        opacity: 1;
-    }
-    100% {
-        transform: translateY(100%) scaleY(2);
-        opacity: 0;
-    }
-}
-
 
 .mods-manager {
     display: flex;
@@ -5766,4 +5990,167 @@ select.settings-input option {
     to {
         opacity: 1;
     }
+}
+/* Launcher Update Modal Styles */
+.update-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(10px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 100000;
+    animation: fadeIn 0.3s ease;
+}
+
+.update-modal {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    border: 2px solid rgba(147, 51, 234, 0.3);
+    border-radius: 16px;
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 20px 60px rgba(147, 51, 234, 0.3);
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(30px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.update-header {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    color: #9333ea;
+}
+
+.update-header i {
+    font-size: 2rem;
+}
+
+.update-header h2 {
+    margin: 0;
+    font-size: 1.5rem;
+    color: #fff;
+}
+
+.update-content {
+    color: #e0e0e0;
+    margin-bottom: 1.5rem;
+}
+
+.update-version {
+    font-size: 1.2rem;
+    font-weight: 600;
+    color: #9333ea;
+    margin-bottom: 0.5rem;
+}
+
+.current-version {
+    color: #888;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.release-notes {
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 3px solid #9333ea;
+    padding: 1rem;
+    border-radius: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+    font-size: 0.9rem;
+    line-height: 1.6;
+}
+
+.update-progress {
+    margin-bottom: 1.5rem;
+}
+
+.progress-bar-container {
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 10px;
+    height: 20px;
+    overflow: hidden;
+    margin-bottom: 0.5rem;
+}
+
+.progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, #9333ea 0%, #7c3aed 100%);
+    width: 0%;
+    transition: width 0.3s ease;
+    border-radius: 10px;
+}
+
+.progress-text {
+    color: #aaa;
+    font-size: 0.9rem;
+    text-align: center;
+    margin: 0;
+}
+
+.update-note {
+    background: rgba(147, 51, 234, 0.1);
+    border: 1px solid rgba(147, 51, 234, 0.3);
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    margin-top: 1rem;
+}
+
+.update-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.update-actions button {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.update-actions .btn-primary {
+    background: linear-gradient(135deg, #9333ea 0%, #7c3aed 100%);
+    color: white;
+}
+
+.update-actions .btn-primary:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(147, 51, 234, 0.4);
+}
+
+.update-actions .btn-secondary {
+    background: rgba(255, 255, 255, 0.1);
+    color: #e0e0e0;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.update-actions .btn-secondary:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.15);
+}
+
+.update-actions button:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }
