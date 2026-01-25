@@ -340,7 +340,7 @@ async function downloadFile(url, dest, progressCallback, maxRetries = 5) {
         });
       });
 
-      return;
+      return dest;
 
   } catch (error) {
     lastError = error;
@@ -363,7 +363,7 @@ async function downloadFile(url, dest, progressCallback, maxRetries = 5) {
       // If file is substantial size (> 1.5GB), treat as success and break
       if (sizeInMB >= 1500) {
         console.log('File appears to be complete despite error, treating as success');
-        return; // Exit the retry loop successfully
+        return dest; // Exit the retry loop successfully
       }
     }
 
