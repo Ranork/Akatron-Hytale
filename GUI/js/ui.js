@@ -115,28 +115,18 @@ function setupWindowControls() {
 }
 
 function showLauncherOrInstall(isInstalled) {
-  const launcher = document.getElementById('launcher-container');
-  const install = document.getElementById('install-page');
-  const sidebar = document.querySelector('.sidebar');
-  const gameTitle = document.querySelector('.game-title-section');
-
-  if (isInstalled) {
-    if (launcher) launcher.style.display = '';
-    if (install) install.style.display = 'none';
-    if (sidebar) sidebar.style.pointerEvents = 'auto';
-    if (gameTitle) gameTitle.style.display = '';
-    showPage('play-page');
-    setActiveNav('play');
-  } else {
-    if (launcher) launcher.style.display = 'none';
-    if (install) {
-      install.style.display = '';
-      install.classList.add('active');
+  const playBtn = document.getElementById('playBtn');
+  const playText = document.getElementById('playText');
+  
+  if (playBtn && playText) {
+    if (isInstalled) {
+      playText.textContent = window.i18n ? window.i18n.t('play.play') : 'PLAY';
+      playBtn.onclick = window.launch;
+      // Ensure we don't have residual install classes/states
+    } else {
+      playText.textContent = window.i18n ? window.i18n.t('install.installButton') : 'INSTALL';
+      playBtn.onclick = window.installGame;
     }
-    if (sidebar) sidebar.style.pointerEvents = 'none';
-    if (gameTitle) gameTitle.style.display = 'none';
-    const pages = document.querySelectorAll('#launcher-container .page');
-    pages.forEach(page => page.classList.remove('active'));
   }
 }
 
@@ -495,7 +485,7 @@ function showFirstLaunchUpdateDialog(data) {
 }
 
 function lockPlayButton(locked) {
-  const playButton = document.getElementById('homePlayBtn');
+  const playButton = document.getElementById('playBtn');
 
   if (!playButton) {
     console.warn('Play button not found');
@@ -508,7 +498,7 @@ function lockPlayButton(locked) {
     playButton.style.cursor = 'not-allowed';
     playButton.setAttribute('data-locked', 'true');
 
-    const spanElement = playButton.querySelector('span');
+    const spanElement = document.getElementById('playText');
     if (spanElement) {
       if (!playButton.getAttribute('data-original-text')) {
         playButton.setAttribute('data-original-text', spanElement.textContent);
@@ -518,18 +508,40 @@ function lockPlayButton(locked) {
 
     console.log('Play button locked');
   } else {
-    playButton.style.opacity = '';
-    playButton.style.pointerEvents = '';
-    playButton.style.cursor = '';
+    playButton.style.opacity = '1';
+    playButton.style.pointerEvents = 'auto';
+    playButton.style.cursor = 'pointer';
     playButton.removeAttribute('data-locked');
 
-    const spanElement = playButton.querySelector('span');
+    const spanElement = document.getElementById('playText');
     if (spanElement) {
-      // Use i18n to get the current translation instead of restoring saved text
-      spanElement.textContent = window.i18n ? window.i18n.t('play.playButton') : 'PLAY HYTALE';
-      playButton.removeAttribute('data-original-text');
+        // Instead of restoring old text which might be stale (pre-translation),
+        // we re-determine the correct text.
+        // Assuming default is PLAY if we are unlocking.
+        // Ideally we should know if we are in Install or Play mode.
+        // For now, let's use the current translation for 'PLAY' as a safe default if we can't determine state easily,
+        // but checking data-original-text is okay IF we didn't save "checking...".
+        // Better approach: verify if i18n is available and use it.
+        
+        if (window.i18n) {
+             // We default to 'play.play' because lockPlayButton is usually used for the main Play action.
+             // If we were in 'Install' mode, showLauncherOrInstall should be called to update it correctly.
+             // But to be safe, let's try to infer or just set 'play.play' which is "OYNA"/"PLAY".
+             // If the user was in install mode, this might be wrong?
+             // Actually, checkGameInstallation typically ends by deciding state.
+             
+             // Let's use i18n.t('play.play') as the unlock default, 
+             // but if we want to be smarter, we could check if playBtn.onclick == window.installGame? 
+             // That's hard to check directly.
+             
+             // Simplest fix for the reported issue:
+             spanElement.textContent = window.i18n.t('play.play');
+        } else {
+             // Fallback to original text or hardcoded
+             const originalText = playButton.getAttribute('data-original-text');
+             spanElement.textContent = originalText || 'PLAY';
+        }
     }
-
     console.log('Play button unlocked');
   }
 }
@@ -641,9 +653,9 @@ function setupUI() {
   lockPlayButton(true);
 
   setTimeout(() => {
-    const playButton = document.getElementById('homePlayBtn');
+    const playButton = document.getElementById('playBtn');
     if (playButton && playButton.getAttribute('data-locked') === 'true') {
-      const spanElement = playButton.querySelector('span');
+      const spanElement = document.getElementById('playText');
       if (spanElement && spanElement.textContent === 'CHECKING...') {
         console.warn('Play button still locked after startup timeout, forcing unlock');
         lockPlayButton(false);
@@ -654,7 +666,9 @@ function setupUI() {
   handleNavigation();
   setupWindowControls();
   setupSidebarLogo();
-  setupAnimations();
+  setupSidebarLogo();
+  // setupAnimations();
+  setupFirstLaunchHandlers();
   setupFirstLaunchHandlers();
   loadLauncherVersion();
   checkGameInstallation().catch(err => {
@@ -1102,5 +1116,50 @@ function getRetryContextMessage() {
 
 // Make toggleMaximize globally available
 window.toggleMaximize = toggleMaximize;
+
+// About Modal Logic
+window.openAboutModal = function() {
+    const modal = document.getElementById('aboutModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        // Force reflow
+        void modal.offsetWidth;
+        modal.classList.remove('opacity-0');
+        
+        const content = modal.querySelector('div');
+        if (content) {
+            content.classList.remove('scale-95');
+            content.classList.add('scale-100');
+        }
+    }
+};
+
+window.closeAboutModal = function() {
+    const modal = document.getElementById('aboutModal');
+    if (modal) {
+        modal.classList.add('opacity-0');
+        
+        const content = modal.querySelector('div');
+        if (content) {
+            content.classList.remove('scale-100');
+            content.classList.add('scale-95');
+        }
+
+        setTimeout(() => {
+            modal.classList.add('hidden');
+        }, 300);
+    }
+};
+
+// Close About Modal on outside click
+document.addEventListener('click', (e) => {
+    const modal = document.getElementById('aboutModal');
+    if (modal && !modal.classList.contains('hidden')) {
+        // If click is on the background (modal itself) and not the content
+        if (e.target === modal) {
+            closeAboutModal();
+        }
+    }
+});
 
 document.addEventListener('DOMContentLoaded', setupUI);

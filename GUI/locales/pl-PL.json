@@ -5,7 +5,17 @@
     "news": "Wiadomości",
     "chat": "Chat z graczami",
     "settings": "Ustawienia",
-    "skins": "Skiny"
+    "skins": "Skiny",
+    "about": "O programie"
+  },
+  "about": {
+     "title": "O Akatron Hytale",
+     "description": "Ten projekt to darmowy launcher dla Hytale.",
+     "sourceProject": "Projekt Źródłowy",
+     "sourceDescription": "Ten projekt jest forkiem Hytale-F2P autorstwa amiayweb.",
+     "visitSource": "Odwiedź Źródło",
+     "developedBy": "Stworzone przez",
+     "close": "Zamknij"
   },
   "header": {
     "playersLabel": "Graczy:",
@@ -31,6 +41,7 @@
     "latestNews": "NAJNOWSZE WIADOMOŚCI",
     "viewAll": "ZOBACZ CAŁOŚĆ",
     "checking": "SPRAWDZANIE...",
+    "launching": "URUCHAMIANIE...",
     "play": "GRAJ"
   },
   "mods": {
@@ -56,7 +67,23 @@
     "noDescription": "Brak opisu",
     "confirmDelete": "Czy na pewno chcesz usunąć \"{name}\"?",
     "confirmDeleteDesc": "Tej czynności nie można cofnąć.",
-    "confirmDeletion": "Potwierdź"
+    "confirmDeletion": "Potwierdź",
+    "apiKeyRequiredDesc": "API key z CurseForge jest wymagany do przeglądania modów",
+    "loadingInstalled": "Ładowanie zainstalowanych modów...",
+    "loadingBrowse": "Pobieranie modów z CurseForge...",
+    "emptyInstalledTitle": "Nie znaleziono zainstalowanych modów",
+    "emptyInstalledDesc": "Przejdź do Przeglądaj, aby znaleźć nowe mody!",
+    "emptyBrowseTitle": "Nie znaleziono modów",
+    "emptyBrowseDesc": "Spróbuj wyszukać coś innego.",
+    "errorLoadInstalled": "Nie udało się załadować zainstalowanych modów",
+    "errorLoadBrowse": "Nie udało się połączyć z CurseForge",
+    "get": "POBIERZ",
+    "reading": "WCZYTYWANIE...",
+    "done": "GOTOWE",
+    "error": "BŁĄD",
+    "retry": "PONÓW",
+    "back": "WSTECZ",
+    "unknown": "Nieznany"
   },
   "news": {
     "title": "WSZYSTKIE WIADOMOŚCI",
@@ -124,7 +151,13 @@
     "logsCopy": "Kopiuj",
     "logsRefresh": "Odśwież",
     "logsFolder": "Otwórz Folder",
-    "logsLoading": "Ładowanie logów..."
+    "logsLoading": "Ładowanie logów...",
+    "closeLauncher": "Zachowanie Launchera",
+    "closeOnStart": "Zamknij Launcher po uruchomieniu gry",
+    "closeOnStartDescription": "Automatycznie zamknij launcher po uruchomieniu Hytale",
+    "hwAccel": "Akceleracja Sprzętowa",
+    "hwAccelDescription": "Włącz akcelerację sprzętową dla launchera",
+    "gameBranch": "Wersja Gry"
   },
   "uuid": {
     "modalTitle": "Zarządzanie UUID",

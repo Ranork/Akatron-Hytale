@@ -4,7 +4,17 @@
     "mods": "Modlar",
     "news": "Haberler",
     "chat": "Oyuncu Sohbeti",
-    "settings": "Ayarlar"
+    "settings": "Ayarlar",
+    "about": "Hakkında"
+  },
+  "about": {
+     "title": "Akatron Hytale Hakkında",
+     "description": "Bu proje Hytale için ücretsiz bir başlatıcıdır.",
+     "sourceProject": "Kaynak Proje",
+     "sourceDescription": "Bu proje, amiayweb tarafından geliştirilen Hytale-F2P projesinin bir forkudur.",
+     "visitSource": "Kaynağı Ziyaret Et",
+     "developedBy": "Geliştirici",
+     "close": "Kapat"
   },
   "header": {
     "playersLabel": "Oyuncular:",
@@ -32,6 +42,7 @@
     "latestNews": "SON HABERLER",
     "viewAll": "HEPSINI GÖR",
     "checking": "KONTROL EDİLİYOR...",
+    "launching": "BAŞLATILIYOR...",
     "play": "OYNA"
   },
   "mods": {
@@ -59,7 +70,22 @@
     "confirmDeleteDesc": "Bu işlem geri alınamaz.",
     "confirmDeletion": "Silmeyi Onayla",
     "apiKeyRequired": "API Anahtarı Gerekli",
-    "apiKeyRequiredDesc": "Modlara göz atmak için CurseForge API anahtarı gereklidir"
+    "apiKeyRequiredDesc": "Modlara göz atmak için CurseForge API anahtarı gereklidir",
+    "loadingInstalled": "Yüklü modlar yükleniyor...",
+    "loadingBrowse": "CurseForge modları getiriliyor...",
+    "emptyInstalledTitle": "Yüklü mod bulunamadı",
+    "emptyInstalledDesc": "Yeni modlar bulmak için Gözat sekmesine gidin!",
+    "emptyBrowseTitle": "Mod bulunamadı",
+    "emptyBrowseDesc": "Başka bir şey aramayı deneyin.",
+    "errorLoadInstalled": "Yüklü modlar yüklenemedi",
+    "errorLoadBrowse": "CurseForge'a bağlanılamadı",
+    "get": "EDİN",
+    "reading": "OKUNUYOR...",
+    "done": "TAMAM",
+    "error": "HATA",
+    "retry": "TEKRAR",
+    "back": "GERİ",
+    "unknown": "Bilinmiyor"
   },
   "news": {
     "title": "TÜM HABERLER",
@@ -131,6 +157,8 @@
     "closeLauncher": "Başlatıcı Davranışı",
     "closeOnStart": "Oyun başlatıldığında Başlatıcıyı Kapat",
     "closeOnStartDescription": "Hytale başlatıldıktan sonra başlatıcıyı otomatik olarak kapatın",
+    "hwAccel": "Donanım Hızlandırma",
+    "hwAccelDescription": "Başlatıcı için donanım hızlandırmayı etkinleştir",
     "gameBranch": "Oyun Dalı",
     "branchRelease": "Yayın",
     "branchPreRelease": "Ön-Yayın",
@@ -222,7 +250,9 @@
     "deleteUuidButton": "Sil",
     "uninstallGameTitle": "Oyunu kaldır",
     "uninstallGameMessage": "Hytale'yi kaldırmak istediğinizden emin misiniz? Tüm oyun dosyaları silinecektir.",
-    "uninstallGameButton": "Kaldır"
+    "uninstallGameButton": "Kaldır",
+    "repairGameTitle": "Oyunu Onar",
+    "repairGameMessage": "Hytale'i onarmak istediğinizden emin misiniz? Bu işlem oyun dosyalarını yeniden yükleyecek ancak verilerinizi (kayıtlar, ekran görüntüleri vb.) koruyacaktır."
   },
   "progress": {
     "initializing": "Başlatılıyor...",
@@ -241,6 +271,8 @@
     "installationComplete": "Kurulum başarıyla tamamlandı!",
     "installationFailed": "Kurulum başarısız: {error}",
     "installingGameFiles": "Oyun dosyaları kuruluyor...",
-    "installComplete": "Kurulum tamamlandı!"
+    "installComplete": "Kurulum tamamlandı!",
+    "repairing": "Oyun onarılıyor...",
+    "repairSuccess": "Oyun başarıyla onarıldı!"
   }
 }

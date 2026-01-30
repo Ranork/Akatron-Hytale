@@ -9,6 +9,14 @@ let closeLauncherCheck;
 let launcherHwAccelCheck;
 let gpuPreferenceRadios;
 let gameBranchRadios;
+let repairGameBtn;
+let openGameLocationBtn;
+
+// Settings Modal Elements
+let settingsModal;
+let settingsModalContent;
+let openSettingsBtn;
+let closeSettingsModalBtn;
 
 
 // UUID Management elements
@@ -169,8 +177,33 @@ function setupSettingsElements() {
   launcherHwAccelCheck = document.getElementById('launcherHwAccelCheck');
   gpuPreferenceRadios = document.querySelectorAll('input[name="gpuPreference"]');
   gameBranchRadios = document.querySelectorAll('input[name="gameBranch"]');
+  repairGameBtn = document.getElementById('repairGameBtn');
+  openGameLocationBtn = document.getElementById('openGameLocationBtn');
+
 
   console.log('[Settings] gameBranchRadios found:', gameBranchRadios.length);
+
+  // Modal Elements
+  settingsModal = document.getElementById('settingsModal');
+  settingsModalContent = document.getElementById('settingsModalContent');
+  openSettingsBtn = document.getElementById('openSettingsBtn');
+  closeSettingsModalBtn = document.getElementById('closeSettingsModalBtn');
+
+  if (openSettingsBtn) {
+      openSettingsBtn.addEventListener('click', openSettingsModal);
+  }
+
+  if (closeSettingsModalBtn) {
+      closeSettingsModalBtn.addEventListener('click', closeSettingsModal);
+  }
+
+  if (settingsModal) {
+      settingsModal.addEventListener('click', (e) => {
+          if (e.target === settingsModal) {
+              closeSettingsModal();
+          }
+      });
+  }
 
 
   // UUID Management elements
@@ -267,6 +300,14 @@ function setupSettingsElements() {
     gameBranchRadios.forEach(radio => {
       radio.addEventListener('change', handleBranchChange);
     });
+  }
+
+  if (repairGameBtn) {
+      repairGameBtn.addEventListener('click', repairGame);
+  }
+
+  if (openGameLocationBtn) {
+      openGameLocationBtn.addEventListener('click', openGameLocation);
   }
 }
 
@@ -1134,3 +1175,38 @@ async function loadVersionBranch() {
     return 'release';
   }
 }
+// === Settings Modal Logic ===
+
+function openSettingsModal() {
+  if (settingsModal) {
+      settingsModal.classList.remove('hidden');
+      // Small delay to allow display:flex to apply before opacity transition
+      setTimeout(() => {
+          settingsModal.classList.remove('opacity-0');
+          if (settingsModalContent) {
+              settingsModalContent.classList.remove('scale-95');
+              settingsModalContent.classList.add('scale-100');
+          }
+      }, 10);
+      
+      // Refresh settings when opening
+      loadAllSettings();
+  }
+}
+
+function closeSettingsModal() {
+  if (settingsModal) {
+      settingsModal.classList.add('opacity-0');
+      if (settingsModalContent) {
+          settingsModalContent.classList.remove('scale-100');
+          settingsModalContent.classList.add('scale-95');
+      }
+      
+      setTimeout(() => {
+          settingsModal.classList.add('hidden');
+      }, 200);
+  }
+}
+
+window.openSettingsModal = openSettingsModal;
+window.closeSettingsModal = closeSettingsModal;

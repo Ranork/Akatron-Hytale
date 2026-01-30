@@ -89,7 +89,19 @@ function findClientPath(gameLatest) {
 }
 
 function findUserDataPath(gameLatest) {
+  if (!gameLatest) {
+    gameLatest = GAME_DIR;
+    console.log('findUserDataPath called without arguments, defaulting to:', gameLatest);
+  } else {
+    console.log('findUserDataPath called with:', gameLatest);
+  }
+  
   const candidates = [];
+
+  if (typeof gameLatest !== 'string') {
+      console.error('findUserDataPath: gameLatest is not a string:', gameLatest);
+      return null;
+  }
 
   candidates.push(path.join(gameLatest, 'Client', 'UserData'));
 
@@ -97,7 +109,8 @@ function findUserDataPath(gameLatest) {
   candidates.push(path.join(gameLatest, 'Hytale.app', 'Contents', 'UserData'));
   candidates.push(path.join(gameLatest, 'UserData'));
 
-  candidates.push(path.join(gameLatest, 'Client', 'UserData'));
+  // Duplicate candidate removed for cleanliness
+
 
   for (const candidate of candidates) {
     if (fs.existsSync(candidate)) {

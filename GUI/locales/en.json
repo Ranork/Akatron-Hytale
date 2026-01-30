@@ -4,7 +4,17 @@
     "mods": "Mods",
     "news": "News",
     "chat": "Players Chat",
-    "settings": "Settings"
+    "settings": "Settings",
+    "about": "About"
+  },
+  "about": {
+     "title": "About Akatron Hytale",
+     "description": "This project is a free-to-play launcher for Hytale.",
+     "sourceProject": "Source Project",
+     "sourceDescription": "This project is a fork of Hytale-F2P by amiayweb.",
+     "visitSource": "Visit Source",
+     "developedBy": "Developed by",
+     "close": "Close"
   },
   "header": {
     "playersLabel": "Players:",
@@ -32,6 +42,7 @@
     "latestNews": "LATEST NEWS",
     "viewAll": "VIEW ALL",
     "checking": "CHECKING...",
+    "launching": "LAUNCHING...",
     "play": "PLAY"
   },
   "mods": {
@@ -59,7 +70,22 @@
     "confirmDeleteDesc": "This action cannot be undone.",
     "confirmDeletion": "Confirm Deletion",
     "apiKeyRequired": "API Key Required",
-    "apiKeyRequiredDesc": "CurseForge API key is needed to browse mods"
+    "apiKeyRequiredDesc": "CurseForge API key is needed to browse mods",
+    "loadingInstalled": "Loading installed mods...",
+    "loadingBrowse": "Fetching CurseForge mods...",
+    "emptyInstalledTitle": "No installed mods found",
+    "emptyInstalledDesc": "Go to Browse to find new mods!",
+    "emptyBrowseTitle": "No mods found",
+    "emptyBrowseDesc": "Try searching for something else.",
+    "errorLoadInstalled": "Failed to load installed mods",
+    "errorLoadBrowse": "Failed to connect to CurseForge",
+    "get": "GET",
+    "reading": "READING...",
+    "done": "DONE",
+    "error": "ERROR",
+    "retry": "RE-TRY",
+    "back": "BACK",
+    "unknown": "Unknown"
   },
   "news": {
     "title": "ALL NEWS",
@@ -226,7 +252,9 @@
     "deleteUuidButton": "Delete",
     "uninstallGameTitle": "Uninstall game",
     "uninstallGameMessage": "Are you sure you want to uninstall Hytale? All game files will be deleted.",
-    "uninstallGameButton": "Uninstall"
+    "uninstallGameButton": "Uninstall",
+    "repairGameTitle": "Repair Game",
+    "repairGameMessage": "Are you sure you want to repair Hytale? This will reinstall the game files but keep your data (saves, screenshots, etc.)."
   },
   "progress": {
     "initializing": "Initializing...",
@@ -245,6 +273,8 @@
     "installationComplete": "Installation completed successfully!",
     "installationFailed": "Installation failed: {error}",
     "installingGameFiles": "Installing game files...",
-    "installComplete": "Installation complete!"
+    "installComplete": "Installation complete!",
+    "repairing": "Repairing game...",
+    "repairSuccess": "Game repaired successfully!"
   }
 }

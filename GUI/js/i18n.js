@@ -70,9 +70,36 @@ const i18n = (() => {
     });
   }
 
-  // Initialize - load saved language only
+  // Initialize - load saved language or detect
   async function init(savedLang) {
-    const lang = savedLang || 'en';
+    let lang = savedLang;
+    
+    // Auto-detect if no saved language
+    if (!lang) {
+        const browserLang = navigator.language; // e.g., "en-US", "tr", "es-ES"
+        
+        // Try exact match
+        const exactMatch = availableLanguages.find(l => l.code === browserLang);
+        if (exactMatch) {
+            lang = exactMatch.code;
+        } else {
+            // Try matching first part (e.g., "en" from "en-US")
+            const shortLang = browserLang.split('-')[0];
+            const partialMatch = availableLanguages.find(l => l.code.startsWith(shortLang));
+            if (partialMatch) {
+                lang = partialMatch.code;
+            }
+        }
+    }
+
+    // Default to 'en' if detection failed
+    lang = lang || 'en';
+    
+    // Validate if the detected/saved language is actually supported, fallback to 'en'
+    if (!availableLanguages.some(l => l.code === lang)) {
+        lang = 'en'; 
+    }
+
     await loadLanguage(lang);
     currentLang = lang;
     updateDOM();

@@ -4,7 +4,17 @@
     "mods": "Mods",
     "news": "Notícias",
     "chat": "Chat de Jogadores",
-    "settings": "Configurações"
+    "settings": "Configurações",
+    "about": "Sobre"
+  },
+  "about": {
+     "title": "Sobre Akatron Hytale",
+     "description": "Este projeto é um iniciador gratuito para Hytale.",
+     "sourceProject": "Projeto Fonte",
+     "sourceDescription": "Este projeto é um fork do Hytale-F2P de amiayweb.",
+     "visitSource": "Visitar Fonte",
+     "developedBy": "Desenvolvido por",
+     "close": "Fechar"
   },
   "header": {
     "playersLabel": "Jogadores:",
@@ -30,6 +40,7 @@
     "latestNews": "ÚLTIMAS NOTÍCIAS",
     "viewAll": "VER TUDO",
     "checking": "VERIFICANDO...",
+    "launching": "INICIANDO...",
     "play": "JOGAR"
   },
   "mods": {
@@ -57,7 +68,22 @@
     "confirmDeleteDesc": "Esta ação não pode ser desfeita.",
     "confirmDeletion": "Confirmar exclusão",
     "apiKeyRequired": "Chave de API Necessária",
-    "apiKeyRequiredDesc": "Chave de API do CurseForge é necessária para procurar mods"
+    "apiKeyRequiredDesc": "Chave de API do CurseForge é necessária para procurar mods",
+    "loadingInstalled": "Carregando mods instalados...",
+    "loadingBrowse": "Buscando mods do CurseForge...",
+    "emptyInstalledTitle": "Nenhum mod instalado encontrado",
+    "emptyInstalledDesc": "Vá para Procurar para encontrar novos mods!",
+    "emptyBrowseTitle": "Nenhum mod encontrado",
+    "emptyBrowseDesc": "Tente pesquisar por outra coisa.",
+    "errorLoadInstalled": "Falha ao carregar mods instalados",
+    "errorLoadBrowse": "Falha ao conectar ao CurseForge",
+    "get": "OBTER",
+    "reading": "LENDO...",
+    "done": "FEITO",
+    "error": "ERRO",
+    "retry": "TENTAR NOVAMENTE",
+    "back": "VOLTAR",
+    "unknown": "Desconhecido"
   },
   "news": {
     "title": "TODAS AS NOTÍCIAS",
@@ -129,6 +155,8 @@
     "closeLauncher": "Comportamento do Lançador",
     "closeOnStart": "Fechar Lançador ao iniciar o jogo",
     "closeOnStartDescription": "Fechar automaticamente o lançador após o Hytale ter sido iniciado",
+    "hwAccel": "Aceleração de Hardware",
+    "hwAccelDescription": "Ativar aceleração de hardware para o lançador",
     "gameBranch": "Versão do Jogo",
     "branchRelease": "Lançamento",
     "branchPreRelease": "Pré-Lançamento",

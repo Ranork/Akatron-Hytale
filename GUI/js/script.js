@@ -7,6 +7,7 @@ import './players.js';
 import './chat.js';
 import './settings.js';
 import './logs.js';
+import './bg_rotator.js';
 
 // Initialize i18n immediately (before DOMContentLoaded)
 let i18nInitialized = false;

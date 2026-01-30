@@ -827,6 +827,69 @@ function validatePWRFile(filePath) {
     return false;
   }
 }
+function ensureAkatronServer() {
+  try {
+    const { getResolvedAppDir } = require('../core/paths');
+    const { loadVersionBranch } = require('../core/config');
+    const branch = loadVersionBranch();
+    const appDir = getResolvedAppDir();
+    // Path construction: getResolvedAppDir() + branch + 'package' + 'game' + 'latest' + 'Client' + 'UserData' + 'ServerList.json'
+    // Note: getResolvedAppDir() returns path ending in HytaleF2P.
+    // gameManager.js logic uses: path.join(appDir, branch, 'package', 'game', 'latest')
+    
+    // Using explicit path construction as requested
+    const serverListPath = path.join(appDir, branch, 'package', 'game', 'latest', 'Client', 'UserData', 'ServerList.json');
+    const userDataDir = path.dirname(serverListPath);
+
+    if (!fs.existsSync(userDataDir)) {
+      fs.mkdirSync(userDataDir, { recursive: true });
+    }
+
+    let serverList = { SavedServers: [] };
+    
+    if (fs.existsSync(serverListPath)) {
+      try {
+        const content = fs.readFileSync(serverListPath, 'utf8');
+        serverList = JSON.parse(content);
+        if (!serverList.SavedServers) {
+            serverList.SavedServers = [];
+        }
+      } catch (e) {
+        console.warn('Failed to parse ServerList.json, creating new one', e);
+        serverList = { SavedServers: [] };
+      }
+    }
+
+    const akatronServerId = "4dfe815d-1d78-47d1-b620-e89799d812ac";
+    const serverExists = serverList.SavedServers.some(server => server.Id === akatronServerId);
+
+    if (!serverExists) {
+      console.log('Akatron server not found, adding to ServerList.json');
+      serverList.SavedServers.push({
+        "Id": akatronServerId,
+        "Name": "Akatron Hytale",
+        "Address": "akatron.net/hytale",
+        "DateSaved": new Date().toISOString()
+      }); 
+      fs.writeFileSync(serverListPath, JSON.stringify(serverList, null, 2), 'utf8');
+    } else {
+        // Optional: Update details if they changed? For now, we only ensure presence based on ID.
+        // Uncomment below to force update details
+        /*
+        const index = serverList.SavedServers.findIndex(s => s.Id === akatronServerId);
+        if (index !== -1) {
+            serverList.SavedServers[index].Name = "Akatron Hytale";
+            serverList.SavedServers[index].Address = "akatron.net/hytale";
+            fs.writeFileSync(serverListPath, JSON.stringify(serverList, null, 2), 'utf8');
+        }
+        */
+       console.log('Akatron server already exists in ServerList.json');
+    }
+
+  } catch (error) {
+    console.error('Error ensuring Akatron server:', error);
+  }
+}
 
 module.exports = {
   downloadPWR,
@@ -836,9 +899,7 @@ module.exports = {
   isGameInstalled,
   installGame,
   uninstallGame,
-  isGameInstalled,
-  installGame,
-  uninstallGame,
   checkExistingGameInstallation,
-  repairGame
+  repairGame,
+  ensureAkatronServer
 };

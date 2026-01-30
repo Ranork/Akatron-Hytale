@@ -74,7 +74,8 @@
       "backend/**/*",
       "GUI/**/*",
       "package.json",
-      ".env"
+      ".env",
+      "build/icon.ico"
     ],
     "win": {
       "target": [

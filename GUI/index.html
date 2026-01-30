@@ -1,889 +1,386 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Hytale F2P Launcher</title>
+    <title>Hytale Launcher</title>
+    <!-- Tailwind CSS -->
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
-    <link
-        href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
-        rel="stylesheet">
+    <!-- Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Custom CSS -->
     <link rel="stylesheet" href="style.css">
 </head>
-
-<body class="bg-black text-white overflow-hidden font-sans select-none" tabindex="-1">
-    <div class="absolute inset-0 z-0">
-        <img src="https://assets.authbp.xyz/bg.png" alt="Background" class="w-full h-full object-cover" />
-        <div class="absolute inset-0 bg-black/60"></div>
-        <div class="absolute inset-0 bg-[url('data:image/svg+xml,%3Csvg viewBox=" 0 0 256 256"
-            xmlns="http://www.w3.org/2000/svg" %3E%3Cfilter id="noiseFilter" %3E%3CfeTurbulence type="fractalNoise"
-            baseFrequency="0.65" numOctaves="3" stitchTiles="stitch" /%3E%3C/filter%3E%3Crect width="100%25"
-            height="100%25" filter="url(%23noiseFilter)" opacity="0.1" /%3E%3C/svg%3E')] opacity-20"></div>
+<body class="bg-black text-white overflow-hidden select-none">
+    
+    <!-- Background -->
+    <div id="bg-container" class="absolute inset-0 z-0 overflow-hidden bg-gray-900">
+        <!-- Initial background, will be replaced/layered by JS -->
+        <img id="current-bg" src="./img/bg-1.jpg" alt="Background" class="w-full h-full object-cover transition-opacity duration-1000" />
     </div>
 
-    <div class="flex w-full h-screen relative z-10">
-        <nav class="sidebar">
-            <div class="sidebar-logo">
-                <img src="./icon.png" alt="Hytale Logo" />
+    <!-- Drag Region -->
+    <div class="drag-region absolute top-0 left-0 w-full h-8 z-40"></div>
 
-            </div>
-
-            <div class="sidebar-nav">
-                <div class="nav-item active" data-page="play">
-                    <i class="fas fa-play"></i>
-                    <span class="nav-tooltip" data-i18n="nav.play">Play</span>
-                </div>
-                <div class="nav-item" data-page="mods">
-                    <i class="fas fa-box"></i>
-                    <span class="nav-tooltip" data-i18n="nav.mods">Mods</span>
-                </div>
-                <div class="nav-item" data-page="news">
-                    <i class="fas fa-newspaper"></i>
-                    <span class="nav-tooltip" data-i18n="nav.news">News</span>
-                </div>
-                <div class="nav-item" data-page="chat">
-                    <i class="fas fa-comments"></i>
-                    <span class="nav-tooltip" data-i18n="nav.chat">Players Chat</span>
-                </div>
-                <div class="nav-item" data-page="settings">
-                    <i class="fas fa-cog"></i>
-                    <span class="nav-tooltip" data-i18n="nav.settings">Settings</span>
-                </div>
-                <div class="nav-item logs-nav-item" data-page="logs" id="openLogsBtn" onclick="openLogs()">
-                    <i class="fas fa-terminal"></i>
-                    <span class="nav-tooltip">Logs</span>
-                </div>
-            </div>
-
-
-        </nav>
-
-        <main class="main-content">
-            <header class="header">
-                <div id="playersOnlineCounter" class="players-counter">
-                    <i class="fas fa-users"></i>
-                    <span class="counter-label" data-i18n="header.playersLabel">Players:</span>
-                    <span id="onlineCount" class="counter-value">0</span>
-                </div>
-
-                <div class="profile-selector" id="profileSelector">
-                    <button class="profile-btn" onclick="toggleProfileDropdown()">
-                        <i class="fas fa-user-circle"></i>
-                        <span id="currentProfileName">Default</span>
-                        <i class="fas fa-chevron-down"></i>
-                    </button>
-                    <div class="profile-dropdown" id="profileDropdown">
-                        <div class="profile-list" id="profileList">
-                            <!-- Profiles populated by JS -->
-                        </div>
-                        <div class="profile-divider"></div>
-                        <div class="profile-action" onclick="openProfileManager()">
-                            <i class="fas fa-cog"></i>
-                            <span data-i18n="header.manageProfiles">Manage Profiles</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="window-controls">
-                    <button class="control-btn minimize" onclick="window.electronAPI?.minimizeWindow()">
-                        <i class="fas fa-minus"></i>
-                    </button>
-                    <button class="control-btn maximize" onclick="toggleMaximize()">
-                        <i class="fas fa-square"></i>
-                    </button>
-                    <button class="control-btn close" onclick="window.electronAPI?.closeWindow()">
-                        <i class="fas fa-times"></i>
-                    </button>
-                </div>
-            </header>
-
-            <div class="game-title-section">
-                <h1 class="game-title">
-                    HY<span class="title-accent">TALE</span>
-                </h1>
-            </div>
-
-            <div class="content-pages">
-                <div id="install-page" class="page install-page">
-                    <div class="install-content">
-                        <div class="install-header">
-                            <h1 class="install-title">
-                                HY<span class="title-accent">TALE</span>
-                            </h1>
-                            <p class="install-subtitle" data-i18n="install.title">FREE TO PLAY LAUNCHER</p>
-                        </div>
-
-                        <div class="install-form">
-                            <div class="form-group">
-                                <label class="form-label" data-i18n="install.playerName">Player Name</label>
-                                <input type="text" id="installPlayerName"
-                                    data-i18n-placeholder="install.playerNamePlaceholder" class="form-input"
-                                    value="Player" />
-                            </div>
-
-                            <div class="form-group">
-                                <label class="form-label" data-i18n="install.gameBranch">Game Version</label>
-                                <div class="radio-group">
-                                    <label class="radio-label">
-                                        <input type="radio" name="installBranch" value="release" class="custom-radio"
-                                            checked>
-                                        <span class="radio-text">
-                                            <i class="fas fa-check-circle mr-2"></i>
-                                            <span data-i18n="install.releaseVersion">Release (Stable)</span>
-                                        </span>
-                                    </label>
-                                    <label class="radio-label">
-                                        <input type="radio" name="installBranch" value="pre-release"
-                                            class="custom-radio">
-                                        <span class="radio-text">
-                                            <i class="fas fa-flask mr-2"></i>
-                                            <span data-i18n="install.preReleaseVersion">Pre-Release
-                                                (Experimental)</span>
-                                        </span>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="form-group">
-                                <label class="checkbox-group">
-                                    <input type="checkbox" id="installCustomCheck" class="custom-checkbox">
-                                    <span class="checkbox-label" data-i18n="install.customInstallation">Custom
-                                        Installation</span>
-                                </label>
-
-                                <div id="installCustomOptions" class="custom-options">
-                                    <div class="form-subgroup">
-                                        <label class="form-label" data-i18n="install.installationFolder">Installation
-                                            Folder</label>
-                                        <div class="input-with-button">
-                                            <input type="text" id="installPath"
-                                                data-i18n-placeholder="install.pathPlaceholder" class="form-input"
-                                                readonly />
-                                            <button onclick="browseInstallPath()" class="browse-btn">
-                                                <i class="fas fa-folder-open"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <button id="installBtn" class="install-button" onclick="installGame()">
-                                <i class="fas fa-download mr-2"></i>
-                                <span id="installText" data-i18n="install.installButton">INSTALL HYTALE</span>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="launcher-container" class="launcher-container" style="display: none;">
-                    <div id="play-page" class="page active">
-                        <div class="play-section">
-                            <div class="play-content">
-                                <div class="play-header">
-                                    <h2 class="play-title">
-                                        <i class="fas fa-play-circle mr-2"></i>
-                                        <span data-i18n="play.ready">READY TO PLAY</span>
-                                    </h2>
-                                    <p class="play-subtitle" data-i18n="play.subtitle">Launch Hytale and enter the
-                                        adventure</p>
-                                </div>
-
-                                <button id="homePlayBtn" class="home-play-button" onclick="launch()">
-                                    <i class="fas fa-play"></i>
-                                    <span data-i18n="play.playButton">PLAY HYTALE</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div class="news-section">
-                            <div class="news-header">
-                                <h2 class="news-title">
-                                    <i class="fas fa-star mr-2"></i>
-                                    <span data-i18n="play.latestNews">LATEST NEWS</span>
-                                </h2>
-                                <button class="view-all-btn" onclick="navigateToPage('news')">
-                                    <span data-i18n="play.viewAll">VIEW ALL</span> <i
-                                        class="fas fa-arrow-right ml-1"></i>
-                                </button>
-                            </div>
-                            <div id="newsGrid" class="news-grid-horizontal"></div>
-                        </div>
-                    </div>
-
-                    <div id="mods-page" class="page">
-                        <div class="mods-header">
-                            <div class="mods-search-container">
-                                <i class="fas fa-search"></i>
-                                <input type="text" id="modsSearch" data-i18n-placeholder="mods.searchPlaceholder"
-                                    class="mods-search" />
-                            </div>
-                            <div class="mods-actions">
-                                <button id="myModsBtn" class="mods-btn-primary">
-                                    <i class="fas fa-box"></i>
-                                    <span data-i18n="mods.myMods">MY MODS</span>
-                                </button>
-                            </div>
-                        </div>
-
-                        <div id="browseModsList" class="mods-browse-container">
-                        </div>
-
-                        <div class="mods-pagination">
-                            <button id="prevPage" class="pagination-btn">
-                                <i class="fas fa-chevron-left"></i>
-                                <span data-i18n="mods.previous">PREVIOUS</span>
-                            </button>
-                            <span class="pagination-info">
-                                <span data-i18n="mods.page">Page</span> <span id="currentPage">1</span> <span
-                                    data-i18n="mods.of">of</span> <span id="totalPages">1</span>
-                            </span>
-                            <button id="nextPage" class="pagination-btn">
-                                <span data-i18n="mods.next">NEXT</span>
-                                <i class="fas fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
-
-                    <div id="news-page" class="page">
-                        <div class="news-header">
-                            <h2 class="news-title">
-                                <i class="fas fa-newspaper mr-2"></i>
-                                <span data-i18n="news.title">ALL NEWS</span>
-                            </h2>
-                        </div>
-                        <div id="allNewsGrid" class="news-grid-full"></div>
-                    </div>
-
-                    <div id="chat-page" class="page">
-                        <div class="chat-container">
-                            <div class="chat-header">
-                                <h2 class="chat-title">
-                                    <i class="fas fa-comments mr-2"></i>
-                                    <span data-i18n="chat.title">PLAYERS CHAT</span>
-                                </h2>
-                                <div class="chat-header-actions">
-                                    <button id="chatColorBtn" class="chat-color-btn">
-                                        <i class="fas fa-palette"></i>
-                                        <span data-i18n="chat.pickColor">Color</span>
-                                    </button>
-                                    <div class="chat-online-badge">
-                                        <i class="fas fa-circle"></i>
-                                        <span id="chatOnlineCount">0</span> <span data-i18n="chat.online">online</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="chat-body">
-                                <div id="chatMessages" class="chat-messages">
-                                </div>
-                            </div>
-
-                            <div class="chat-footer">
-                                <div class="chat-input-container">
-                                    <textarea id="chatInput" class="chat-input"
-                                        data-i18n-placeholder="chat.inputPlaceholder" rows="1"
-                                        maxlength="500"></textarea>
-                                    <button id="chatSendBtn" class="chat-send-btn">
-                                        <i class="fas fa-paper-plane"></i>
-                                    </button>
-                                </div>
-                                <div class="chat-footer-info">
-                                    <span class="chat-char-counter" id="chatCharCounter">0/500</span>
-                                    <span class="chat-warning-text">
-                                        <i class="fas fa-shield-alt"></i>
-                                        <span data-i18n="chat.secureChat">Secure chat - Links are censored</span>
-                                    </span>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div id="settings-page" class="page">
-                        <div class="settings-container">
-                            <div class="settings-header">
-                                <h2 class="settings-title">
-                                    <i class="fas fa-cog mr-2"></i>
-                                    <span data-i18n="settings.title">SETTINGS</span>
-                                </h2>
-                            </div>
-
-                            <div class="settings-content">
-                                <div class="settings-section">
-                                    <h3 class="settings-section-title">
-                                        <i class="fas fa-gamepad"></i>
-                                        <span data-i18n="settings.game">Game Options</span>
-                                    </h3>
-
-                                    <div class="settings-option">
-                                        <div class="settings-input-group">
-                                            <label class="settings-input-label" data-i18n="settings.playerName">Player
-                                                Name</label>
-                                            <input type="text" id="settingsPlayerName" class="settings-input"
-                                                data-i18n-placeholder="settings.playerNamePlaceholder" maxlength="16" />
-                                            <p class="settings-hint">
-                                                <i class="fas fa-user"></i>
-                                                <span data-i18n="settings.playerNameHint">This name will be used in-game
-                                                    (1-16 characters)</span>
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div class="settings-option">
-                                        <div class="settings-button-group">
-                                            <button id="openGameLocationBtn" class="settings-action-btn"
-                                                onclick="openGameLocation()">
-                                                <i class="fas fa-folder-open"></i>
-                                                <div class="btn-content">
-                                                    <div class="btn-title" data-i18n="settings.openGameLocation">Open
-                                                        Game Location</div>
-                                                    <div class="btn-description"
-                                                        data-i18n="settings.openGameLocationDesc">Open the game
-                                                        installation folder</div>
-                                                </div>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div class="settings-option">
-                                        <div class="settings-button-group">
-                                            <button id="repairGameBtn" class="settings-action-btn"
-                                                onclick="repairGame()">
-                                                <i class="fas fa-tools"></i>
-                                                <div class="btn-content">
-                                                    <div class="btn-title" data-i18n="settings.repairGame">Repair Game
-                                                    </div>
-                                                    <div class="btn-description" data-i18n="settings.reinstallGame">
-                                                        Reinstall game files (preserves data)
-                                                    </div>
-                                                </div>
-                                            </button>
-                                        </div>
-                                    </div>
-
-                                    <div class="settings-option">
-                                        <div class="settings-input-group">
-                                            <label class="settings-input-label" data-i18n="settings.gameBranch">Game
-                                                Branch</label>
-                                            <div class="segmented-control">
-                                                <input type="radio" id="branch-release" name="gameBranch"
-                                                    value="release" checked>
-                                                <label for="branch-release"
-                                                    data-i18n="settings.branchRelease">Release</label>
-                                                <input type="radio" id="branch-pre-release" name="gameBranch"
-                                                    value="pre-release">
-                                                <label for="branch-pre-release"
-                                                    data-i18n="settings.branchPreRelease">Pre-Release</label>
-                                            </div>
-                                            <p class="settings-hint">
-                                                <i class="fas fa-info-circle"></i>
-                                                <span data-i18n="settings.branchHint">Switch between stable release and
-                                                    experimental pre-release versions</span>
-                                            </p>
-                                            <p class="settings-hint" style="color: #f39c12;">
-                                                <i class="fas fa-exclamation-triangle"></i>
-                                                <span data-i18n="settings.branchWarning">Changing branch will download
-                                                    and install a different game version</span>
-                                            </p>
-                                        </div>
-                                    </div>
-
-                                    <div class="settings-option">
-                                        <label class="settings-input-label" data-i18n="settings.gpuPreference">GPU
-                                            Preference</label>
-                                        <div class="segmented-control">
-                                            <input type="radio" id="gpu-auto" name="gpuPreference" value="auto" checked>
-                                            <label for="gpu-auto" data-i18n="settings.gpuAuto">Auto</label>
-                                            <input type="radio" id="gpu-integrated" name="gpuPreference"
-                                                value="integrated">
-                                            <label for="gpu-integrated"
-                                                data-i18n="settings.gpuIntegrated">Integrated</label>
-                                            <input type="radio" id="gpu-dedicated" name="gpuPreference"
-                                                value="dedicated">
-                                            <label for="gpu-dedicated"
-                                                data-i18n="settings.gpuDedicated">Dedicated</label>
-                                        </div>
-                                        <p class="settings-hint">
-                                            <i class="fas fa-info-circle"></i>
-                                            <span data-i18n="settings.gpuHint">Select your preferred GPU (Linux:
-                                                affects DRI_PRIME)</span>
-                                        </p>
-                                        <div id="gpu-detection-info" class="gpu-detection-info"></div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="settings-section">
-                                <h3 class="settings-section-title">
-                                    <i class="fas fa-fingerprint"></i>
-                                    <span data-i18n="settings.account">Player UUID Management</span>
-                                </h3>
-
-                                <div class="settings-option">
-                                    <div class="settings-input-group">
-                                        <label class="settings-input-label" data-i18n="settings.currentUUID">Current
-                                            UUID</label>
-                                        <div class="uuid-display-container">
-                                            <input type="text" id="currentUuid" class="settings-input uuid-input"
-                                                readonly data-i18n-placeholder="settings.uuidPlaceholder" />
-                                            <button id="copyUuidBtn" class="uuid-btn copy-btn" title="Copy UUID">
-                                                <i class="fas fa-copy"></i>
-                                            </button>
-                                            <button id="regenerateUuidBtn" class="uuid-btn regenerate-btn"
-                                                title="Generate New UUID">
-                                                <i class="fas fa-sync-alt"></i>
-                                            </button>
-                                        </div>
-                                        <p class="settings-hint">
-                                            <i class="fas fa-info-circle"></i>
-                                            <span data-i18n="settings.uuidHint">Your unique player identifier for
-                                                this username</span>
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div class="settings-option">
-                                    <div class="settings-button-group">
-                                        <button id="manageUuidsBtn" class="settings-action-btn">
-                                            <i class="fas fa-list"></i>
-                                            <div class="btn-content">
-                                                <div class="btn-title" data-i18n="settings.manageUUIDs">Manage All
-                                                    UUIDs</div>
-                                                <div class="btn-description" data-i18n="settings.manageUUIDsDesc">
-                                                    View and manage all player UUIDs</div>
-                                            </div>
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="settings-section">
-                                <h3 class="settings-section-title">
-                                    <i class="fab fa-discord"></i>
-                                    <span data-i18n="settings.discord">Discord Integration</span>
-                                </h3>
-
-                                <div class="settings-option">
-                                    <label class="settings-checkbox">
-                                        <input type="checkbox" id="discordRPCCheck" checked />
-                                        <span class="checkmark"></span>
-                                        <div class="checkbox-content">
-                                            <div class="checkbox-title" data-i18n="settings.enableRPC">Enable
-                                                Discord Rich Presence</div>
-                                            <div class="checkbox-description" data-i18n="settings.discordDescription">
-                                                Show your launcher activity
-                                                on Discord
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-
-                            <div class="settings-section">
-                                <h3 class="settings-section-title">
-                                    <i class="fas fa-window-close"></i>
-                                    <span data-i18n="settings.closeLauncher">Launcher Behavior</span>
-                                </h3>
-
-                                <div class="settings-option">
-                                    <label class="settings-checkbox">
-                                        <input type="checkbox" id="closeLauncherCheck" />
-                                        <span class="checkmark"></span>
-                                        <div class="checkbox-content">
-                                            <div class="checkbox-title" data-i18n="settings.closeOnStart">Close Launcher
-                                                on game start</div>
-                                            <div class="checkbox-description"
-                                                data-i18n="settings.closeOnStartDescription">
-                                                Automatically close the launcher after Hytale has launched
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-                                <div class="settings-option">
-                                    <label class="settings-checkbox">
-                                        <input type="checkbox" id="launcherHwAccelCheck" />
-                                        <span class="checkmark"></span>
-                                        <div class="checkbox-content">
-                                            <div class="checkbox-title" data-i18n="settings.hwAccel">Launcher Hardware
-                                                Acceleration</div>
-                                            <div class="checkbox-description" data-i18n="settings.hwAccelDescription">
-                                                Enable hardware acceleration for the launcher UI (Requires restart)
-                                            </div>
-                                        </div>
-                                    </label>
-                                </div>
-                            </div>
-
-
-                            <div class="settings-section">
-                                <h3 class="settings-section-title">
-                                    <i class="fas fa-coffee"></i>
-                                    <span data-i18n="settings.java">Java Runtime</span>
-                                </h3>
-
-                                <div class="settings-option">
-                                    <label class="settings-checkbox">
-                                        <input type="checkbox" id="customJavaCheck" />
-                                        <span class="checkmark"></span>
-                                        <div class="checkbox-content">
-                                            <div class="checkbox-title" data-i18n="settings.useCustomJava">Use
-                                                Custom Java Path</div>
-                                            <div class="checkbox-description" data-i18n="settings.javaDescription">
-                                                Override the bundled Java runtime with
-                                                your own installation</div>
-                                        </div>
-                                    </label>
-                                </div>
-
-                                <div id="customJavaOptions" class="custom-java-options" style="display: none;">
-                                    <div class="settings-input-group">
-                                        <label class="settings-input-label" data-i18n="settings.javaPath">Java
-                                            Executable Path</label>
-                                        <div class="settings-input-with-button">
-                                            <input type="text" id="customJavaPath" class="settings-input"
-                                                data-i18n-placeholder="settings.javaPathPlaceholder" readonly />
-                                            <button id="browseJavaBtn" class="settings-browse-btn">
-                                                <i class="fas fa-folder-open"></i>
-                                                <span data-i18n="settings.javaBrowse">Browse</span>
-                                            </button>
-                                        </div>
-                                        <p class="settings-hint">
-                                            <i class="fas fa-info-circle"></i>
-                                            <span data-i18n="settings.javaHint">Select the Java installation folder
-                                                (supports Windows, Mac, Linux)</span>
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div class="settings-section">
-                                <h3 class="settings-section-title">
-                                    <i class="fas fa-language"></i>
-                                    <span data-i18n="settings.language">Language</span>
-                                </h3>
-
-                                <div class="settings-option">
-                                    <div class="settings-input-group">
-                                        <label class="settings-input-label" data-i18n="settings.selectLanguage">Select
-                                            Language</label>
-                                        <select id="languageSelect" class="settings-input">
-                                            <!-- Options populated by i18n.js -->
-                                        </select>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div id="logs-page" class="page">
-                    <div class="logs-container">
-                        <div class="logs-header">
-                            <h2 class="logs-title">
-                                <i class="fas fa-terminal"></i>
-                                <span data-i18n="settings.logs">SYSTEM LOGS</span>
-                            </h2>
-                            <div class="logs-actions">
-                                <button class="logs-action-btn" onclick="copyLogs()">
-                                    <i class="fas fa-copy"></i> <span data-i18n="settings.logsCopy">Copy</span>
-                                </button>
-                                <button class="logs-action-btn" onclick="refreshLogs()">
-                                    <i class="fas fa-sync-alt"></i> <span
-                                        data-i18n="settings.logsRefresh">Refresh</span>
-                                </button>
-                                <button class="logs-action-btn" onclick="openLogsFolder()">
-                                    <i class="fas fa-folder-open"></i> <span data-i18n="settings.logsFolder">Open
-                                        Folder</span>
-                                </button>
-                            </div>
-                        </div>
-                        <div id="logsTerminal" class="logs-terminal">
-                            <div class="text-gray-500 text-center mt-10" data-i18n="settings.logsLoading">Loading
-                                logs...</div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </main>
-    </div>
-
-    <div id="myModsModal" class="mods-modal">
-        <div class="mods-modal-content">
-            <div class="mods-modal-header">
-                <h2 class="mods-modal-title">
-                    <i class="fas fa-box mr-2"></i>
-                    <span data-i18n="mods.modalTitle">MY MODS</span>
-                </h2>
-                <button id="closeMyModsModal" class="mods-modal-close">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="mods-modal-body">
-                <div id="installedModsList" class="installed-mods-list">
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="progressOverlay" class="progress-overlay" style="display: none;">
-        <div class="progress-content">
-            <div class="progress-info">
-                <span id="progressText" data-i18n="progress.initializing">Initializing...</span>
-                <span id="progressPercent">0%</span>
-            </div>
-            <div class="progress-bar-container">
-                <div id="progressBarFill" class="progress-bar-fill"></div>
-            </div>
-            <div class="progress-details">
-                <span id="progressSpeed"></span>
-                <span id="progressSize"></span>
-            </div>
-            <div id="progressErrorContainer" class="progress-error-container" style="display: none;">
-                <div id="progressErrorMessage" class="progress-error-message"></div>
-                <div class="progress-retry-section">
-                    <span id="progressRetryInfo" class="progress-retry-info"></span>
-                    <div class="progress-retry-buttons">
-                        <button id="progressJRRetryBtn" class="progress-retry-btn" style="display: none;">
-                            Retry Java Download
-                        </button>
-                        <button id="progressPWRRetryBtn" class="progress-retry-btn" style="display: none;">
-                            Retry Game Download
-                        </button>
-                        <button id="progressRetryBtn" class="progress-retry-btn" style="display: none;">
-                            Retry Download
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div id="chatUsernameModal" class="chat-username-modal" style="display: none;">
-        <div class="chat-username-modal-content">
-            <div class="chat-username-modal-header">
-                <h2 class="chat-username-modal-title">
-                    <i class="fas fa-comments mr-2"></i>
-                    <span data-i18n="chat.joinChat">Join Chat</span>
-                </h2>
-            </div>
-            <div class="chat-username-modal-body">
-                <p class="chat-username-modal-description" data-i18n="chat.chooseUsername">
-                    Choose a username to join the Players Chat
-                </p>
-                <div class="chat-username-input-group">
-                    <label for="chatUsernameInput" class="chat-username-label"
-                        data-i18n="chat.username">Username</label>
-                    <input type="text" id="chatUsernameInput" class="chat-username-input"
-                        data-i18n-placeholder="chat.usernamePlaceholder" maxlength="20" autocomplete="off" />
-                    <span class="chat-username-hint" data-i18n="chat.usernameHint">3-20 characters, letters, numbers, -
-                        and _ only</span>
-                    <span id="chatUsernameError" class="chat-username-error"></span>
-                </div>
-            </div>
-            <div class="chat-username-modal-footer">
-                <button id="chatUsernameCancel" class="chat-username-btn-cancel">
-                    <i class="fas fa-times"></i>
-                    <span data-i18n="common.cancel">Cancel</span>
-                </button>
-                <button id="chatUsernameSubmit" class="chat-username-btn-submit">
-                    <i class="fas fa-check"></i>
-                    <span data-i18n="chat.joinButton">Join Chat</span>
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- UUID Management Modal -->
-    <div id="uuidModal" class="uuid-modal" style="display: none;">
-        <div class="uuid-modal-content">
-            <div class="uuid-modal-header">
-                <h2 class="uuid-modal-title">
-                    <i class="fas fa-fingerprint mr-2"></i>
-                    <span data-i18n="uuid.modalTitle">UUID Management</span>
-                </h2>
-                <button id="uuidModalClose" class="modal-close-btn">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-
-            <div class="uuid-modal-body">
-                <div class="uuid-current-section">
-                    <h3 class="uuid-section-title" data-i18n="uuid.currentUserUUID">Current User UUID</h3>
-                    <div class="uuid-current-display">
-                        <input type="text" id="modalCurrentUuid" class="uuid-display-input" readonly />
-                        <button id="modalCopyUuidBtn" class="uuid-action-btn copy-btn" title="Copy UUID">
-                            <i class="fas fa-copy"></i>
-                        </button>
-                        <button id="modalRegenerateUuidBtn" class="uuid-action-btn regenerate-btn"
-                            title="Generate New UUID">
-                            <i class="fas fa-sync-alt"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="uuid-list-section">
-                    <div class="uuid-list-header">
-                        <h3 class="uuid-section-title" data-i18n="uuid.allPlayerUUIDs">All Player UUIDs</h3>
-                        <button id="generateNewUuidBtn" class="uuid-generate-btn">
-                            <i class="fas fa-plus"></i>
-                            <span data-i18n="uuid.generateNew">Generate New UUID</span>
-                        </button>
-                    </div>
-                    <div id="uuidList" class="uuid-list">
-                        <div class="uuid-loading">
-                            <i class="fas fa-spinner fa-spin"></i>
-                            <span data-i18n="uuid.loadingUUIDs">Loading UUIDs...</span>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="uuid-custom-section">
-                    <h3 class="uuid-section-title" data-i18n="uuid.setCustomUUID">Set Custom UUID</h3>
-                    <div class="uuid-custom-form">
-                        <input type="text" id="customUuidInput" class="uuid-input"
-                            data-i18n-placeholder="uuid.customPlaceholder" maxlength="36" />
-                        <button id="setCustomUuidBtn" class="uuid-set-btn">
-                            <i class="fas fa-check"></i>
-                            <span data-i18n="uuid.setUUID">Set UUID</span>
-                        </button>
-                    </div>
-                    <p class="uuid-custom-hint">
-                        <i class="fas fa-exclamation-triangle"></i>
-                        <span data-i18n="uuid.warning">Warning: Setting a custom UUID will change your current player
-                            identity</span>
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Profile Manager Modal -->
-    <div id="profileManagerModal" class="profile-modal" style="display: none;">
-        <div class="profile-modal-content">
-            <div class="profile-modal-header">
-                <h2 class="profile-modal-title">
-                    <i class="fas fa-users-cog mr-2"></i>
-                    <span data-i18n="profiles.modalTitle">Manage Profiles</span>
-                </h2>
-                <button class="modal-close-btn" onclick="closeProfileManager()">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            <div class="profile-modal-body">
-                <div class="profile-manager-list" id="managerProfileList">
-                    <!-- Populated by JS -->
-                </div>
-                <div class="profile-create-section">
-                    <input type="text" id="newProfileName" data-i18n-placeholder="profiles.newProfilePlaceholder"
-                        class="profile-input" maxlength="20">
-                    <button class="profile-create-btn" onclick="createNewProfile()">
-                        <i class="fas fa-plus"></i> <span data-i18n="profiles.createProfile">Create Profile</span>
-                    </button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="version-display-bottom">
-        <i class="fas fa-code-branch"></i>
-        <span id="launcherVersion">Loading...</span>
-    </div>
-
-    <footer class="fixed bottom-0 left-0 right-0 z-50 bg-black/80 backdrop-blur-sm px-4 py-2">
-        <div class="flex items-center justify-center text-xs text-gray-400">
-            <span>Made by <a href="https://github.com/amiayweb" target="_blank"
-                    class="text-blue-400 hover:text-blue-300 transition-colors">@amiayweb</a> & <a
-                    href="https://github.com/Relyz1993" target="_blank"
-                    class="text-blue-400 hover:text-blue-300 transition-colors">@Relyz</a></span>
-            <span class="mx-2">|</span>
-            <span>Contributors:
-                <a href="https://github.com/chasem-dev" target="_blank"
-                    class="text-blue-400 hover:text-blue-300 transition-colors">@chasem-dev</a>,
-                <a href="https://github.com/crimera" target="_blank"
-                    class="text-blue-400 hover:text-blue-300 transition-colors">@crimera</a>,
-                <a href="https://github.com/sanasol" target="_blank"
-                    class="text-blue-400 hover:text-blue-300 transition-colors">@sanasol</a>,
-                <a href="https://github.com/Terromur" target="_blank"
-                    class="text-blue-400 hover:text-blue-300 transition-colors">@terromur</a>,
-                <a href="https://github.com/ericiskoolbeans" target="_blank"
-                    class="text-blue-400 hover:text-blue-300 transition-colors">@ericiskoolbeans</a>,
-                <a href="https://github.com/fazrigading" target="_blank"
-                    class="text-blue-400 hover:text-blue-300 transition-colors">@fazrigading</a>,
-                <a href="https://github.com/Rahul-Sahani04" target="_blank"
-                    class="text-blue-400 hover:text-blue-300 transition-colors">@Rahul-Sahani04</a>,
-                <a href="https://github.com/xSamiVS" target="_blank"
-                    class="text-blue-400 hover:text-blue-300 transition-colors">@xSamiVS</a>
-            </span>
-        </div>
-    </footer>
-
-    <script type="module" src="js/script.js"></script> <!-- Discord Notification -->
-    <div id="discordNotification" class="discord-notification">
-        <div class="notification-content">
-            <i class="fab fa-discord"></i>
-            <span class="notification-text" data-i18n="discord.notificationText">Join our Discord community!</span>
-            <button class="notification-action"
-                onclick="window.electronAPI?.openExternal('https://discord.gg/n6HZ7NwSQd')">
-                <span data-i18n="discord.joinButton">Join Discord</span>
-            </button>
-        </div>
-        <button class="notification-close" onclick="closeDiscordNotification()">
+    <!-- Window Controls -->
+    <div class="window-controls">
+        <button class="control-btn minimize" onclick="window.electronAPI?.minimizeWindow()">
+            <i class="fas fa-minus"></i>
+        </button>
+        <button class="control-btn close" onclick="window.electronAPI?.closeWindow()">
             <i class="fas fa-times"></i>
         </button>
     </div>
 
-    <!-- Modal pour sélectionner la couleur du chat -->
-    <div id="chatColorModal" class="chat-color-modal" style="display: none;">
-        <div class="chat-color-modal-content">
-            <div class="chat-color-modal-header">
-                <h3 class="chat-color-modal-title">
-                    <i class="fas fa-palette"></i>
-                    <span data-i18n="chat.colorModal.title">Customize Username Color</span>
-                </h3>
-                <button class="modal-close-btn" onclick="closeChatColorModal()">
-                    <i class="fas fa-times"></i>
+    <!-- Logo (Top Left) -->
+    <div class="absolute top-8 left-8 z-20">
+        <img src="./img/hytale.png" alt="Hytale Logo" class="h-36 w-auto drop-shadow-lg">
+    </div>
+
+    <!-- Main Content (Bottom Right) -->
+    <div class="absolute bottom-12 right-12 z-20 flex flex-col items-end gap-6">
+        
+        <!-- Username Section -->
+        <div class="w-full flex justify-end">
+            <!-- Display Mode -->
+            <div id="usernameDisplayContainer" class="group flex items-center gap-3 cursor-pointer transition-all">
+                 <button id="editUsernameBtn" class="text-gray-400 opacity-0 group-hover:opacity-100 hover:text-white transition-all transform translate-x-2 group-hover:translate-x-0" title="Edit Username">
+                    <i class="fas fa-pencil-alt text-sm"></i>
+                </button>
+                <div class="flex items-center gap-2">
+                    <span id="playerNameDisplay" class="font-mono text-white text-xl font-bold tracking-wide drop-shadow-md">Player</span>
+                    <i class="fas fa-user-circle text-white text-xl"></i>
+                </div>
+            </div>
+
+            <!-- Edit Mode (Hidden by default) -->
+            <div id="usernameEditContainer" class="relative hidden w-64">
+                <input type="text" id="playerName" 
+                       class="w-full bg-transparent border border-white/20 rounded-lg py-2 pl-4 pr-10 text-white text-right focus:outline-none focus:border-purple-500 focus:bg-transparent transition-all font-mono shadow-lg"
+                       placeholder="Username" value="Player">
+                <button id="saveUsernameBtn" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-green-500 hover:text-green-400 transition-colors" title="Save Username">
+                    <i class="fas fa-check"></i>
                 </button>
             </div>
-            <div class="chat-color-modal-body">
-                <div id="solidColorSection" class="color-section">
-                    <h4 data-i18n="chat.colorModal.chooseSolid">Choose a solid color:</h4>
-                    <div class="predefined-colors">
-                        <div class="color-option" data-color="#3498db" style="background: #3498db;"></div>
-                        <div class="color-option" data-color="#e74c3c" style="background: #e74c3c;"></div>
-                        <div class="color-option" data-color="#2ecc71" style="background: #2ecc71;"></div>
-                        <div class="color-option" data-color="#f39c12" style="background: #f39c12;"></div>
-                        <div class="color-option" data-color="#9b59b6" style="background: #9b59b6;"></div>
-                        <div class="color-option" data-color="#1abc9c" style="background: #1abc9c;"></div>
-                        <div class="color-option" data-color="#e91e63" style="background: #e91e63;"></div>
-                        <div class="color-option" data-color="#ff5722" style="background: #ff5722;"></div>
-                    </div>
-                    <div class="custom-color-input">
-                        <label for="customColor" data-i18n="chat.colorModal.customColor">Custom color:</label>
-                        <input type="color" id="customColor" value="#3498db">
-                    </div>
-                </div>
+        </div>
 
-                <div class="color-preview">
-                    <h4 data-i18n="chat.colorModal.preview">Preview:</h4>
-                    <div id="colorPreview" class="preview-username" data-i18n="chat.colorModal.previewUsername">
-                        YourUsername</div>
+        <!-- Progress Overlay -->
+        <div id="progressOverlay" class="w-[400px] mb-2 transition-all duration-300" style="display: none;">
+             <div class="px-2 py-1">
+                 <div class="flex justify-between items-end mb-1">
+                    <div class="text-white/80 font-mono text-xs uppercase tracking-wider" id="progressText">Initializing...</div>
+                    <div class="text-xs text-white/60 font-mono" id="progressPercent">0%</div>
+                 </div>
+                 <div class="w-full h-1 bg-white/10 rounded-full overflow-hidden">
+                     <div id="progressBarFill" class="h-full bg-white w-0 transition-all duration-300 shadow-[0_0_10px_rgba(255,255,255,0.5)]"></div>
+                 </div>
+                 <div class="text-right text-[10px] text-white/40 mt-1 font-mono" id="progressSpeed"></div>
+             </div>
+        </div>
+
+        <!-- Buttons Container -->
+            <!-- Play Button -->
+            <button id="playBtn" onclick="launch()" class="group relative px-12 py-4 bg-transparent overflow-hidden rounded-xl transition-all hover:scale-105 active:scale-95 flex-1 shadow-xl shadow-purple-900/20">
+                <div class="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 opacity-90 group-hover:opacity-100 transition-opacity"></div>
+                <div class="relative flex items-center justify-center gap-4">
+                     <span id="playText" class="font-bold tracking-widest text-2xl text-white drop-shadow-md" data-i18n="play.play">PLAY</span>
+                     <i class="fas fa-play text-white text-xl"></i>
+                </div>
+            </button>
+
+            <!-- Version Info -->
+        </div>
+
+    
+    <div class="absolute bottom-5 right-5 flex items-center gap-3 text-xs font-mono">
+        <span class="text-white cursor-pointer hover:text-purple-300 transition-colors drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" onclick="openAboutModal()" data-i18n="nav.about">About</span>
+        <span class="text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]">|</span>
+        <span class="text-white/80 drop-shadow-[0_1px_2px_rgba(0,0,0,0.8)]" id="launcherVersion">...</span>
+    </div>
+
+    <!-- About Modal -->
+    <div id="aboutModal" class="fixed inset-0 z-50 hidden flex items-center justify-center bg-black/80 backdrop-blur-sm opacity-0 transition-opacity duration-300">
+         <div class="glass-panel p-8 rounded-2xl max-w-lg w-full transform scale-95 transition-transform duration-300 border border-purple-500/30">
+             <div class="flex flex-col items-center text-center">
+                 <img src="./img/hytale.png" alt="Akatron Hytale" class="h-16 mb-6 drop-shadow-lg">
+                 <h2 class="text-2xl font-bold text-white mb-2" data-i18n="about.title">About Akatron Hytale</h2>
+                 <p class="text-gray-400 text-sm mb-6" data-i18n="about.description">This project is a free-to-play launcher for Hytale.</p>
+                 
+                 <div class="w-full bg-white/5 rounded-lg p-4 mb-6 text-left border border-white/10">
+                     <p class="text-xs text-purple-400 font-bold uppercase tracking-wider mb-2" data-i18n="about.sourceProject">SOURCE PROJECT</p>
+                     <p class="text-gray-300 text-sm mb-3" data-i18n="about.sourceDescription">This project is a fork of Hytale-F2P by amiayweb.</p>
+                     <button onclick="window.electronAPI.openExternal('https://github.com/amiayweb/Hytale-F2P')" class="flex items-center gap-2 text-white bg-purple-600 hover:bg-purple-700 px-4 py-2 rounded-lg text-xs font-bold transition-colors w-full justify-center">
+                         <i class="fab fa-github text-lg"></i>
+                         <span data-i18n="about.visitSource">VISIT SOURCE</span>
+                     </button>
+                 </div>
+
+                 <button onclick="closeAboutModal()" class="text-gray-400 hover:text-white text-sm font-bold transition-colors" data-i18n="about.close">CLOSE</button>
+             </div>
+         </div>
+    </div>
+
+    <!-- Bottom Left Controls (Discord & Mods) -->
+    <div class="absolute bottom-12 left-12 z-20 flex gap-4">
+        <!-- Discord Button -->
+        <button onclick="window.electronAPI.openExternal('https://akatron.net/hytale-discord')" class="group relative gap-3 flex items-center justify-center rounded-lg px-2" style="background-color: #00000050;" data-i18n-title="discord.joinButton">
+            <i class="fab fa-discord text-xl text-white"></i>
+            <span class="text-xs font-bold tracking-wider" data-i18n="discord.joinButton">DISCORD</span>
+        </button>
+
+        <!-- Mods Button -->
+        <button id="openModsBtn" class="group relative h-12 rounded-lg bg-black/40 hover:bg-black/60 backdrop-blur-md flex items-center justify-center gap-3 rounded-lg px-2"  style="background-color: #00000050;" data-i18n-title="nav.mods">
+            <i class="fa-solid fa-box-open"></i>
+            <span class="text-xs font-bold tracking-wider" data-i18n="nav.mods">MODS</span>
+        </button>
+
+        <!-- Settings Button -->
+        <button id="openSettingsBtn" class="group relative h-12 rounded-lg bg-black/40 hover:bg-black/60 backdrop-blur-md flex items-center justify-center gap-3 rounded-lg px-2"  style="background-color: #00000050;" data-i18n-title="nav.settings">
+            <i class="fas fa-cog"></i>
+            <span class="text-xs font-bold tracking-wider" data-i18n="nav.settings">SETTINGS</span>
+        </button>
+    </div>
+
+
+    </div>
+
+
+
+
+    <!-- Mod Manager Modal -->
+    <div id="modsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden opacity-0 transition-opacity duration-200" style="backdrop-filter: blur(4px);">
+        <!-- Main Modal Container -->
+        <div id="modsModalContent" 
+             class="flex flex-col rounded-xl shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden" 
+             style="background-color: rgba(255, 255, 255, 0.95); width: 750px; height: 600px; max-width: 95vw; max-height: 90vh; border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            
+            <!-- Header -->
+            <div class="h-14 px-6 flex justify-between items-center shrink-0" style="background-color: rgba(249, 250, 251, 0.8); border-bottom: 1px solid #e5e7eb;">
+                 <h2 class="text-base font-bold tracking-tight text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-cubes text-purple-500"></i>
+                    <span data-i18n="mods.modalTitle">MOD MANAGER</span>
+                 </h2>
+                 <button id="closeModsModalBtn" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-times"></i>
+                 </button>
+            </div>
+            
+            <!-- Sub-Header: Tabs & Search -->
+            <div class="px-6 py-3 flex justify-between items-center shrink-0" style="background-color: rgba(255, 255, 255, 0.6);">
+                <div class="flex gap-4 text-sm font-medium">
+                    <button id="tabBrowse" class="text-purple-600 border-b-2 border-purple-500 pb-0.5 transition-colors font-bold" data-i18n="install.browse">Browse</button>
+                    <button id="tabInstalled" class="text-gray-500 hover:text-gray-700 transition-colors" data-i18n="mods.installed">Installed</button>
+                </div>
+                <!-- Search Input -->
+                <div class="relative">
+                     <i class="fas fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xs"></i>
+                     <input type="text" id="modsSearchInput" placeholder="Search mods..." data-i18n-placeholder="mods.searchPlaceholder"
+                            class="text-xs text-gray-700 placeholder-gray-400 focus:outline-none w-56 transition-colors shadow-sm"
+                            style="background-color: #fff; border: 1px solid #e5e7eb; padding: 6px 12px 6px 32px; border-radius: 20px;">
                 </div>
             </div>
-            <div class="chat-color-modal-footer">
-                <button class="btn-secondary" onclick="closeChatColorModal()"><span
-                        data-i18n="common.cancel">Cancel</span></button>
-                <button class="btn-primary" onclick="applyChatColor()"><span data-i18n="chat.colorModal.apply">Apply
-                        Color</span></button>
+
+            <!-- Content Area (List View) -->
+            <div id="modsListContainer" class="flex-1 overflow-y-auto p-4 flex flex-col gap-2 custom-scrollbar-light" style="background-color: rgba(243, 244, 246, 0.5);">
+                <!-- Mod Items Go Here -->
+            </div>
+
+            <!-- Content Area (Details View) -->
+            <div id="modDetailsContainer" class="flex-1 overflow-y-auto p-0 flex flex-col hidden custom-scrollbar-light" style="background-color: rgba(255, 255, 255, 0.8); display: none;">
+                <!-- Details injected here -->
+            </div>
+
+            <!-- Pagination -->
+            <div id="modsPagination" class="h-12 px-6 flex justify-between items-center shrink-0 text-xs" style="background-color: rgba(249, 250, 251, 0.9); border-top: 1px solid #e5e7eb;">
+                <span class="text-gray-500">Page <span id="addPageInfo" class="text-gray-800 font-bold">1</span></span>
+                <div class="flex gap-2">
+                    <button id="prevPageBtn" class="w-8 h-8 rounded-full border border-gray-200 hover:bg-white hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 transition-all flex items-center justify-center" style="background-color: transparent;">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button id="nextPageBtn" class="w-8 h-8 rounded-full border border-gray-200 hover:bg-white hover:shadow-sm disabled:opacity-30 disabled:cursor-not-allowed text-gray-600 transition-all flex items-center justify-center" style="background-color: transparent;">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 
+    <!-- Settings Modal -->
+    <div id="settingsModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/40 hidden opacity-0 transition-opacity duration-200" style="backdrop-filter: blur(4px);">
+        <!-- Main Modal Container -->
+        <div id="settingsModalContent" 
+             class="flex flex-col rounded-xl shadow-2xl transform scale-95 transition-transform duration-200 overflow-hidden" 
+             style="background-color: rgba(255, 255, 255, 0.95); width: 600px; height: 700px; max-width: 95vw; max-height: 90vh; border: 1px solid rgba(255, 255, 255, 0.5); box-shadow: 0 10px 40px rgba(0,0,0,0.1);">
+            
+            <!-- Header -->
+            <div class="h-14 px-6 flex justify-between items-center shrink-0" style="background-color: rgba(249, 250, 251, 0.8); border-bottom: 1px solid #e5e7eb;">
+                 <h2 class="text-base font-bold tracking-tight text-gray-800 flex items-center gap-2">
+                    <i class="fas fa-cog text-purple-500"></i>
+                    <span data-i18n="settings.title">SETTINGS</span>
+                 </h2>
+                 <button id="closeSettingsModalBtn" class="w-8 h-8 rounded-full flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-times"></i>
+                 </button>
+            </div>
+            
+            <!-- Content Area -->
+            <div class="flex-1 overflow-y-auto p-6 flex flex-col gap-6 custom-scrollbar-light" style="background-color: rgba(255, 255, 255, 0.8);">
+                
+                <!-- Game Options -->
+                <section>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3" data-i18n="settings.game">Game Options</h3>
+                    <div class="space-y-4">
+                        <!-- Player Name -->
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1" data-i18n="settings.playerName">Player Name</label>
+                            <input type="text" id="settingsPlayerName" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-700 focus:outline-none focus:border-purple-500 transition-colors" data-i18n-placeholder="settings.playerNamePlaceholder" maxlength="16">
+                            <p class="text-[10px] text-gray-400 mt-1" data-i18n="settings.playerNameHint">Check main screen to edit name easily.</p>
+                        </div>
+
+                        <!-- Game Branch -->
+                        <div>
+                             <label class="block text-xs font-semibold text-gray-600 mb-1" data-i18n="settings.gameBranch">Game Version</label>
+                             <div class="flex items-center gap-4 bg-white border border-gray-200 rounded-lg p-1.5">
+                                <label class="flex-1 relative cursor-pointer group">
+                                    <input type="radio" name="gameBranch" value="release" class="peer sr-only">
+                                    <div class="text-center py-2 rounded-md text-xs font-bold text-gray-500 hover:bg-gray-50 peer-checked:bg-purple-600 peer-checked:text-white peer-checked:shadow-md transition-all">
+                                        <i class="fas fa-cube mr-1"></i> <span data-i18n="settings.branchRelease">Release</span>
+                                    </div>
+                                </label>
+                                <label class="flex-1 relative cursor-pointer group">
+                                    <input type="radio" name="gameBranch" value="pre-release" class="peer sr-only">
+                                    <div class="text-center py-2 rounded-md text-xs font-bold text-gray-500 hover:bg-gray-50 peer-checked:bg-purple-600 peer-checked:text-white peer-checked:shadow-md transition-all">
+                                        <i class="fas fa-flask mr-1"></i> <span data-i18n="settings.branchPreRelease">Pre-Release</span>
+                                    </div>
+                                </label>
+                             </div>
+                             <p class="text-[10px] text-orange-400 mt-1"><i class="fas fa-exclamation-triangle"></i> <span data-i18n="settings.branchWarning">Switching versions requires re-download.</span></p>
+                        </div>
+
+                        <!-- GPU Preference -->
+                        <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1" data-i18n="settings.gpuPreference">GPU Preference</label>
+                            <div class="flex items-center gap-2 bg-white border border-gray-200 rounded-lg p-1.5">
+                               <label class="flex-1 relative cursor-pointer">
+                                   <input type="radio" name="gpuPreference" value="auto" class="peer sr-only">
+                                   <div class="text-center py-2 rounded-md text-xs font-bold text-gray-500 hover:bg-gray-50 peer-checked:bg-purple-600 peer-checked:text-white peer-checked:shadow-md transition-all">
+                                       <i class="fas fa-magic mr-1"></i> <span data-i18n="settings.gpuAuto">Auto</span>
+                                   </div>
+                               </label>
+                               <label class="flex-1 relative cursor-pointer">
+                                   <input type="radio" name="gpuPreference" value="integrated" class="peer sr-only">
+                                   <div class="text-center py-2 rounded-md text-xs font-bold text-gray-500 hover:bg-gray-50 peer-checked:bg-purple-600 peer-checked:text-white peer-checked:shadow-md transition-all">
+                                       <i class="fas fa-microchip mr-1"></i> <span data-i18n="settings.gpuIntegrated">iGPU</span>
+                                   </div>
+                               </label>
+                               <label class="flex-1 relative cursor-pointer">
+                                   <input type="radio" name="gpuPreference" value="dedicated" class="peer sr-only">
+                                   <div class="text-center py-2 rounded-md text-xs font-bold text-gray-500 hover:bg-gray-50 peer-checked:bg-purple-600 peer-checked:text-white peer-checked:shadow-md transition-all">
+                                       <i class="fas fa-hdd mr-1"></i> <span data-i18n="settings.gpuDedicated">dGPU</span>
+                                   </div>
+                               </label>
+                            </div>
+                            <div id="gpu-detection-info" class="text-[10px] text-gray-400 mt-1 italic"></div>
+                       </div>
+                        
+                        <!-- Actions -->
+                        <div class="flex gap-2">
+                             <button id="openGameLocationBtn" class="flex-1 py-2 px-3 bg-white border border-gray-200 rounded-lg hover:border-purple-300 hover:text-purple-600 text-gray-600 text-xs font-bold transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-folder-open"></i> <span data-i18n="settings.openGameLocation">Game Folder</span>
+                            </button>
+                             <button id="repairGameBtn" class="flex-1 py-2 px-3 bg-white border border-gray-200 rounded-lg hover:border-purple-300 hover:text-purple-600 text-gray-600 text-xs font-bold transition-all flex items-center justify-center gap-2">
+                                <i class="fas fa-tools"></i> <span data-i18n="settings.repairGame">Repair Game</span>
+                            </button>
+                        </div>
+                    </div>
+                </section>
+                
+                <hr class="border-gray-200">
+
+                <!-- Account -->
+                <section>
+                    <div class="flex justify-between items-center mb-3">
+                         <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider" data-i18n="settings.account">Account (UUID)</h3>
+                         <button id="manageUuidsBtn" class="text-[10px] text-purple-600 font-bold hover:underline" data-i18n="settings.manageUUIDs">MANAGE ALL</button>
+                    </div>
+                    <div class="flex gap-2">
+                         <input type="text" id="currentUuid" readonly class="flex-1 bg-gray-50 border border-gray-200 rounded-lg px-3 py-2 text-xs font-mono text-gray-500 focus:outline-none">
+                         <button id="copyUuidBtn" class="w-9 rounded-lg border border-gray-200 hover:bg-white hover:text-purple-600 text-gray-400 transition-colors" data-i18n-title="uuid.copyTooltip"><i class="fas fa-copy"></i></button>
+                         <button id="regenerateUuidBtn" class="w-9 rounded-lg border border-gray-200 hover:bg-white hover:text-purple-600 text-gray-400 transition-colors" data-i18n-title="uuid.regenerateTooltip"><i class="fas fa-sync-alt"></i></button>
+                    </div>
+                </section>
+
+                <hr class="border-gray-200">
+
+                <!-- Java & System -->
+                <section>
+                    <h3 class="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3" data-i18n="settings.title">System</h3>
+                    <div class="space-y-3">
+                         <!-- Language -->
+                         <div>
+                            <label class="block text-xs font-semibold text-gray-600 mb-1" data-i18n="settings.language">Language</label>
+                            <select id="languageSelect" class="w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-700 focus:outline-none focus:border-purple-500 transition-colors shadow-sm cursor-pointer">
+                                <!-- Options populated by script.js -->
+                            </select>
+                         </div>
+
+                        <!-- Custom Java -->
+                         <div class="space-y-2">
+                             <label class="flex items-center gap-2 cursor-pointer">
+                                 <input type="checkbox" id="customJavaCheck" class="rounded text-purple-600 focus:ring-purple-500 border-gray-300">
+                                 <span class="text-sm text-gray-700 font-medium" data-i18n="settings.useCustomJava">Use Custom Java Path</span>
+                             </label>
+                             <div id="customJavaOptions" class="hidden pl-6">
+                                  <div class="flex gap-2">
+                                     <input type="text" id="customJavaPath" readonly class="flex-1 bg-white border border-gray-200 rounded-lg px-3 py-2 text-xs text-gray-500 focus:outline-none">
+                                     <button id="browseJavaBtn" class="px-3 rounded-lg border border-gray-200 hover:bg-white hover:text-purple-600 text-gray-600 text-xs font-bold transition-colors" data-i18n="settings.javaBrowse">Browse</button>
+                                  </div>
+                             </div>
+                         </div>
+                         
+                         <!-- Other Checks -->
+                         <label class="flex items-center gap-2 cursor-pointer">
+                             <input type="checkbox" id="discordRPCCheck" class="rounded text-purple-600 focus:ring-purple-500 border-gray-300">
+                             <span class="text-sm text-gray-700 font-medium" data-i18n="settings.enableRPC">Enable Discord Rich Presence</span>
+                         </label>
+
+                         <label class="flex items-center gap-2 cursor-pointer">
+                             <input type="checkbox" id="closeLauncherCheck" class="rounded text-purple-600 focus:ring-purple-500 border-gray-300">
+                             <span class="text-sm text-gray-700 font-medium" data-i18n="settings.closeOnStart">Close Launcher on Start</span>
+                         </label>
+                         
+                         <label class="flex items-center gap-2 cursor-pointer">
+                             <input type="checkbox" id="launcherHwAccelCheck" class="rounded text-purple-600 focus:ring-purple-500 border-gray-300">
+                             <span class="text-sm text-gray-700 font-medium" data-i18n="settings.hwAccel">Launcher Hardware Acceleration</span>
+                         </label>
+                    </div>
+                </section>
+                
+                 <!-- Logs Link -->
+                 <div class="mt-2 text-center">
+                      <button onclick="window.openLogsFolder()" class="text-xs text-gray-400 hover:text-gray-600 hover:underline" data-i18n="settings.logsFolder">Open Logs Folder</button>
+                 </div>
+
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/script.js"></script>
     <script src="js/i18n.js"></script>
     <script type="module" src="js/settings.js"></script>
     <script type="module" src="js/update.js"></script>
     <script src="js/updater.js"></script>
+    <script type="module">
+        import { initModsManager } from './js/mods.js';
+        // Auto-init when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initModsManager);
+        } else {
+            initModsManager();
+        }
+    </script>
 </body>
-
-
 </html>

@@ -41,7 +41,7 @@ let mainWindow;
 let discordRPC = null;
 
 // Discord Rich Presence setup
-const DISCORD_CLIENT_ID = "1462244937868513373";
+const DISCORD_CLIENT_ID = "1460772205741867184";
 
 function initDiscordRPC() {
   try {
@@ -77,14 +77,14 @@ function setDiscordActivity() {
 
   try {
     discordRPC.setActivity({
-      details: 'Using HytaleF2P',
+      details: 'Acayip eğleniyor',
       startTimestamp: Date.now(),
       largeImageKey: 'hytale_logo',
-      largeImageText: 'Hytale F2P Launcher',
+      largeImageText: 'Akatron Hytale',
       buttons: [
         {
-          label: 'GitHub',
-          url: 'https://github.com/amiayweb/Hytale-F2P'
+          label: 'Discord',
+          url: 'https://akatron.net/hytale-discord'
         }
       ]
     });
@@ -145,6 +145,7 @@ function createWindow() {
     height: 720,
     minWidth: 900,
     minHeight: 600,
+    icon: path.join(__dirname, 'build/icon.ico'),
     frame: false,
     resizable: true,
     alwaysOnTop: false,
@@ -154,7 +155,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
-      devTools: false,
+      devTools: true,
       webSecurity: true
     }
   });
@@ -229,18 +230,10 @@ function createWindow() {
     });
   }, 3000);
 
-  mainWindow.webContents.on('devtools-opened', () => {
-    mainWindow.webContents.closeDevTools();
-  });
+
 
   mainWindow.webContents.on('before-input-event', (event, input) => {
     if (input.control && input.shift && input.key.toLowerCase() === 'i') {
-      event.preventDefault();
-    }
-    if (input.control && input.shift && input.key.toLowerCase() === 'j') {
-      event.preventDefault();
-    }
-    if (input.control && input.shift && input.key.toLowerCase() === 'c') {
       event.preventDefault();
     }
     if (input.key === 'F12') {
@@ -271,6 +264,10 @@ function createWindow() {
 }
 
 app.whenReady().then(async () => {
+  // Ensure Akatron server is in the server list
+  const { ensureAkatronServer } = require('./backend/managers/gameManager');
+  ensureAkatronServer();
+
   const packageJson = require('./package.json');
   console.log('=== HYTALE F2P LAUNCHER STARTED ===');
   console.log('Launcher version:', packageJson.version);

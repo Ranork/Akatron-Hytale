@@ -17,10 +17,27 @@ export function setupLauncher() {
 
   if (playerNameInput) {
     playerNameInput.addEventListener('change', savePlayerName);
+    playerNameInput.addEventListener('keypress', (e) => {
+        if (e.key === 'Enter') {
+            savePlayerName();
+            toggleUsernameEditMode(false);
+        }
+    });
   }
 
-  if (javaPathInput) {
-    javaPathInput.addEventListener('change', saveJavaPath);
+  // Username Edit/Save Logic
+  const editBtn = document.getElementById('editUsernameBtn');
+  const saveBtn = document.getElementById('saveUsernameBtn');
+  
+  if (editBtn) {
+    editBtn.addEventListener('click', () => toggleUsernameEditMode(true));
+  }
+  
+  if (saveBtn) {
+    saveBtn.addEventListener('click', () => {
+        savePlayerName();
+        toggleUsernameEditMode(false);
+    });
   }
 
   if (window.electronAPI && window.electronAPI.onProgressUpdate) {
@@ -31,6 +48,9 @@ export function setupLauncher() {
       }
     });
   }
+
+  // Load stored username
+  loadStoredPlayerName();
 
   // Initial Profile Load
   loadProfiles();
@@ -43,6 +63,20 @@ export function setupLauncher() {
       if (dropdown) dropdown.classList.remove('show');
     }
   });
+}
+
+async function loadStoredPlayerName() {
+  try {
+    if (window.electronAPI && window.electronAPI.loadUsername) {
+      const storedName = await window.electronAPI.loadUsername();
+      if (storedName && playerNameInput) {
+        playerNameInput.value = storedName;
+        updateUsernameUI();
+      }
+    }
+  } catch (error) {
+    console.error('Failed to load player name:', error);
+  }
 }
 
 // ==========================================
@@ -61,6 +95,38 @@ async function loadProfiles() {
   } catch (error) {
     console.error('Failed to load profiles:', error);
   }
+}
+
+function toggleUsernameEditMode(editMode) {
+    const displayContainer = document.getElementById('usernameDisplayContainer');
+    const editContainer = document.getElementById('usernameEditContainer');
+    const input = document.getElementById('playerName');
+    
+    if (displayContainer && editContainer) {
+        if (editMode) {
+            displayContainer.classList.add('hidden');
+            editContainer.classList.remove('hidden');
+            if (input) {
+                input.focus();
+                // Cursor at end
+                const val = input.value;
+                input.value = '';
+                input.value = val;
+            }
+        } else {
+            editContainer.classList.add('hidden');
+            displayContainer.classList.remove('hidden');
+            updateUsernameUI();
+        }
+    }
+}
+
+function updateUsernameUI() {
+    const input = document.getElementById('playerName');
+    const display = document.getElementById('playerNameDisplay');
+    if (input && display) {
+        display.textContent = input.value || 'Player';
+    }
 }
 
 function renderProfileList(profiles, activeProfile) {
@@ -194,11 +260,22 @@ window.switchProfile = async (id) => {
 export async function launch() {
   if (isDownloading || (playBtn && playBtn.disabled)) return;
 
+  // Get player name directly from input first
   let playerName = 'Player';
-  if (window.SettingsAPI && window.SettingsAPI.getCurrentPlayerName) {
-    playerName = window.SettingsAPI.getCurrentPlayerName();
-  } else if (playerNameInput && playerNameInput.value.trim()) {
+  if (playerNameInput && playerNameInput.value.trim()) {
     playerName = playerNameInput.value.trim();
+  } else if (window.SettingsAPI && window.SettingsAPI.getCurrentPlayerName) {
+    // Fallback to SettingsAPI if input is empty/missing
+    playerName = window.SettingsAPI.getCurrentPlayerName();
+  }
+
+  // Save the username before launching
+  try {
+     if (window.electronAPI && window.electronAPI.saveUsername) {
+        await window.electronAPI.saveUsername(playerName);
+     }
+  } catch (err) {
+      console.warn('Could not save username:', err);
   }
 
   let javaPath = '';
@@ -219,7 +296,7 @@ export async function launch() {
   isDownloading = true;
   if (playBtn) {
     playBtn.disabled = true;
-    playText.textContent = 'LAUNCHING...';
+    playText.textContent = window.i18n ? window.i18n.t('play.launching') : 'LAUNCHING...';
   }
 
   try {
@@ -455,21 +532,27 @@ async function performUninstall() {
 }
 
 export async function repairGame() {
+  const message = window.i18n ? window.i18n.t('confirm.repairGameMessage') : 'Are you sure you want to repair Hytale? This will reinstall the game files but keep your data (saves, screenshots, etc.).';
+  const title = window.i18n ? window.i18n.t('confirm.repairGameTitle') : 'Repair Game';
+  const confirmBtn = window.i18n ? window.i18n.t('settings.repairGame') : 'Repair';
+  const cancelBtn = window.i18n ? window.i18n.t('common.cancel') : 'Cancel';
+
   showCustomConfirm(
-    'Are you sure you want to repair Hytale? This will reinstall the game files but keep your data (saves, screenshots, etc.).',
-    'Repair Game',
+    message,
+    title,
     async () => {
       await performRepair();
     },
     null,
-    'Repair',
-    'Cancel'
+    confirmBtn,
+    cancelBtn
   );
 }
 
 async function performRepair() {
   if (window.LauncherUI) window.LauncherUI.showProgress();
-  if (window.LauncherUI) window.LauncherUI.updateProgress({ message: 'Repairing game...' });
+  const repairingMsg = window.i18n ? window.i18n.t('progress.repairing') : 'Repairing game...';
+  if (window.LauncherUI) window.LauncherUI.updateProgress({ message: repairingMsg });
   isDownloading = true;
 
   try {
@@ -478,7 +561,8 @@ async function performRepair() {
 
       if (result.success) {
         if (window.LauncherUI) {
-          window.LauncherUI.updateProgress({ message: 'Game repaired successfully!' });
+          const successMsg = window.i18n ? window.i18n.t('progress.repairSuccess') : 'Game repaired successfully!';
+          window.LauncherUI.updateProgress({ message: successMsg });
           setTimeout(() => {
             window.LauncherUI.hideProgress();
           }, 2000);
@@ -507,10 +591,16 @@ function resetPlayButton() {
 
 async function savePlayerName() {
   try {
-    if (window.electronAPI && window.electronAPI.saveSettings) {
+    // Use saveUsername instead of saveSettings for consistency with old launcher
+    if (window.electronAPI && window.electronAPI.saveUsername) {
+      const playerName = (playerNameInput ? playerNameInput.value.trim() : '') || 'Player';
+      await window.electronAPI.saveUsername(playerName);
+    } else if (window.electronAPI && window.electronAPI.saveSettings) {
+       // Fallback
       const playerName = (playerNameInput ? playerNameInput.value.trim() : '') || 'Player';
       await window.electronAPI.saveSettings({ playerName });
     }
+    updateUsernameUI();
   } catch (error) {
     console.error('Error saving player name:', error);
   }
