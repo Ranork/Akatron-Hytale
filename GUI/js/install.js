@@ -28,25 +28,9 @@ export function setupInstallation() {
 export async function installGame() {
   if (isDownloading || (playBtn && playBtn.disabled)) return;
   
-<<<<<<< HEAD
   const playerName = (playerNameInput ? playerNameInput.value.trim() : '') || 'Player';
   const installPath = ''; // Use default
   const selectedBranch = 'release'; // Force release
-=======
-  let playerName = (installPlayerName ? installPlayerName.value.trim() : '') || 'Player';
-  const installPath = installPathInput ? installPathInput.value.trim() : '';
-  
-  // Limit player name to 16 characters
-  if (playerName.length > 16) {
-    playerName = playerName.substring(0, 16);
-    if (installPlayerName) {
-      installPlayerName.value = playerName;
-    }
-  }
-  
-  const selectedBranchRadio = document.querySelector('input[name="installBranch"]:checked');
-  const selectedBranch = selectedBranchRadio ? selectedBranchRadio.value : 'release';
->>>>>>> upstream/main
   
   console.log(`[Install] Installing game with branch: ${selectedBranch}`);
   
@@ -69,20 +53,10 @@ export async function installGame() {
           window.LauncherUI.updateProgress({ message: successMsg });
           setTimeout(() => {
             window.LauncherUI.hideProgress();
-<<<<<<< HEAD
             window.LauncherUI.showLauncherOrInstall(true); // Switches button to PLAY mode
             const input = document.getElementById('playerName');
             if (input) input.value = playerName;
             resetInstallButton(); // Actually just unlocks form
-=======
-            window.LauncherUI.showLauncherOrInstall(true);
-            // Sync player name to both launcher and settings inputs
-            const playerNameInput = document.getElementById('playerName');
-            if (playerNameInput) playerNameInput.value = playerName;
-            const settingsPlayerName = document.getElementById('settingsPlayerName');
-            if (settingsPlayerName) settingsPlayerName.value = playerName;
-            resetInstallButton();
->>>>>>> upstream/main
           }, 2000);
         }
       } else {
@@ -122,30 +96,11 @@ function simulateInstallation(playerName) {
     
     if (progress >= 100) {
       clearInterval(interval);
-<<<<<<< HEAD
       if (window.LauncherUI) {
         window.LauncherUI.hideProgress();
         window.LauncherUI.showLauncherOrInstall(true);
         resetInstallButton();
       }
-=======
-      const successMsg = window.i18n ? window.i18n.t('progress.installationComplete') : 'Installation completed successfully!';
-      setTimeout(() => {
-        if (window.LauncherUI) {
-          window.LauncherUI.updateProgress({ message: successMsg });
-          setTimeout(() => {
-            window.LauncherUI.hideProgress();
-            window.LauncherUI.showLauncherOrInstall(true);
-            // Sync player name to both launcher and settings inputs
-            const playerNameInput = document.getElementById('playerName');
-            if (playerNameInput) playerNameInput.value = playerName;
-            const settingsPlayerName = document.getElementById('settingsPlayerName');
-            if (settingsPlayerName) settingsPlayerName.value = playerName;
-            resetInstallButton();
-          }, 2000);
-        }
-      }, 1000);
->>>>>>> upstream/main
     }
   }, 100);
 }
@@ -174,25 +129,11 @@ export async function browseInstallPath() {
 
 async function savePlayerName() {
   try {
-<<<<<<< HEAD
     if (window.electronAPI && window.electronAPI.saveUsername) {
         const playerName = (playerNameInput ? playerNameInput.value.trim() : '') || 'Player';
         await window.electronAPI.saveUsername(playerName);
     } else if (window.electronAPI && window.electronAPI.saveSettings) {
       const playerName = (playerNameInput ? playerNameInput.value.trim() : '') || 'Player';
-=======
-    if (window.electronAPI && window.electronAPI.saveSettings) {
-      let playerName = (installPlayerName ? installPlayerName.value.trim() : '') || 'Player';
-      
-      // Limit player name to 16 characters
-      if (playerName.length > 16) {
-        playerName = playerName.substring(0, 16);
-        if (installPlayerName) {
-          installPlayerName.value = playerName;
-        }
-      }
-      
->>>>>>> upstream/main
       await window.electronAPI.saveSettings({ playerName });
     }
   } catch (error) {
@@ -240,10 +181,7 @@ async function loadPlayerSettings() {
 }
 
 window.installGame = installGame;
-<<<<<<< HEAD
-=======
-window.browseInstallPath = browseInstallPath;
->>>>>>> upstream/main
+
 
 document.addEventListener('DOMContentLoaded', async () => {
   setupInstallation();
