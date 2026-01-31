@@ -246,5 +246,11 @@
     "installationFailed": "Installation misslyckades: {error}",
     "installingGameFiles": "Installerar spelfiler...",
     "installComplete": "Installation slutförd!"
+  },
+  "welcome": {
+    "title": "Välkommen",
+    "description": "Vänligen välj ett användarnamn.",
+    "placeholder": "Användarnamn",
+    "continue": "FORTSÄTT"
   }
 }

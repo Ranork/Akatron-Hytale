@@ -340,6 +340,20 @@ app.whenReady().then(async () => {
     }, 15000);
 
     try {
+      // Check for username on startup
+      const currentUsername = loadUsername();
+      if (!currentUsername || currentUsername === 'Player') {
+         console.log('Username is default or empty, requesting set username...');
+         if (mainWindow && !mainWindow.isDestroyed()) {
+             // Delay slightly to ensure renderer is ready
+             setTimeout(() => {
+                 if (mainWindow && !mainWindow.isDestroyed()) {
+                    mainWindow.webContents.send('request-username');
+                 }
+             }, 500);
+         }
+      }
+
       console.log('Starting first launch check...');
 
       if (mainWindow && !mainWindow.isDestroyed()) {

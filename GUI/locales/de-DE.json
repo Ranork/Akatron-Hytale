@@ -246,5 +246,11 @@
     "installationFailed": "Installation fehlgeschlagen: {error}",
     "installingGameFiles": "Spieldateien werden installiert...",
     "installComplete": "Installation abgeschlossen!"
+  },
+  "welcome": {
+    "title": "Willkommen",
+    "description": "Bitte wählen Sie einen Benutzernamen.",
+    "placeholder": "Benutzername",
+    "continue": "WEITER"
   }
 }

@@ -246,5 +246,11 @@
     "installationFailed": "Échec de l'installation: {error}",
     "installingGameFiles": "Installation des fichiers du jeu...",
     "installComplete": "Installation terminée!"
+  },
+  "welcome": {
+    "title": "Bienvenue",
+    "description": "Veuillez choisir un nom d'utilisateur.",
+    "placeholder": "Nom d'utilisateur",
+    "continue": "CONTINUER"
   }
 }

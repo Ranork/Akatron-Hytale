@@ -157,13 +157,8 @@
     "closeLauncher": "Comportamiento del Launcher",
     "closeOnStart": "Cerrar Launcher al iniciar el juego",
     "closeOnStartDescription": "Cierra automáticamente el launcher después de que Hytale se haya iniciado",
-<<<<<<< HEAD
     "hwAccel": "Aceleración de Hardware",
     "hwAccelDescription": "Habilitar aceleración por hardware para el lanzador",
-=======
-    "hwAccel": "Aceleración por Hardware",
-    "hwAccelDescription": "Habilitar aceleración por hardware para el launcher",
->>>>>>> upstream/main
     "gameBranch": "Rama del Juego",
     "branchRelease": "Lanzamiento",
     "branchPreRelease": "Pre-Lanzamiento",
@@ -277,5 +272,11 @@
     "installationFailed": "Instalación fallida: {error}",
     "installingGameFiles": "Instalando archivos del juego...",
     "installComplete": "¡Instalación completa!"
+  },
+  "welcome": {
+    "title": "Bienvenido",
+    "description": "Por favor, elige un nombre de usuario.",
+    "placeholder": "Nombre de usuario",
+    "continue": "CONTINUAR"
   }
 }

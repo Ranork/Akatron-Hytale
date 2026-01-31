@@ -246,5 +246,11 @@
     "installationFailed": "Установка прервана с ошибкой: {error}",
     "installingGameFiles": "Установка файлов игры...",
     "installComplete": "Установка завершена!"
+  },
+  "welcome": {
+    "title": "Добро пожаловать",
+    "description": "Пожалуйста, выберите имя пользователя.",
+    "placeholder": "Имя пользователя",
+    "continue": "ПРОДОЛЖИТЬ"
   }
 }

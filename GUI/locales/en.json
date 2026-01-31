@@ -276,5 +276,11 @@
     "installComplete": "Installation complete!",
     "repairing": "Repairing game...",
     "repairSuccess": "Game repaired successfully!"
+  },
+  "welcome": {
+    "title": "Welcome",
+    "description": "Please choose a username.",
+    "placeholder": "Username",
+    "continue": "CONTINUE"
   }
 }

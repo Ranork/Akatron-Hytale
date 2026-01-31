@@ -4,22 +4,18 @@
     "mods": "Mody",
     "news": "Wiadomości",
     "chat": "Chat z graczami",
-<<<<<<< HEAD
     "settings": "Ustawienia",
     "skins": "Skiny",
     "about": "O programie"
   },
   "about": {
-     "title": "O Akatron Hytale",
-     "description": "Ten projekt to darmowy launcher dla Hytale.",
-     "sourceProject": "Projekt Źródłowy",
-     "sourceDescription": "Ten projekt jest forkiem Hytale-F2P autorstwa amiayweb.",
-     "visitSource": "Odwiedź Źródło",
-     "developedBy": "Stworzone przez",
-     "close": "Zamknij"
-=======
-    "settings": "Ustawienia"
->>>>>>> upstream/main
+    "title": "O Akatron Hytale",
+    "description": "Ten projekt to darmowy launcher dla Hytale.",
+    "sourceProject": "Projekt Źródłowy",
+    "sourceDescription": "Ten projekt jest forkiem Hytale-F2P autorstwa amiayweb.",
+    "visitSource": "Odwiedź Źródło",
+    "developedBy": "Stworzone przez",
+    "close": "Zamknij"
   },
   "header": {
     "playersLabel": "Graczy:",
@@ -74,7 +70,6 @@
     "confirmDelete": "Czy na pewno chcesz usunąć \"{name}\"?",
     "confirmDeleteDesc": "Tej czynności nie można cofnąć.",
     "confirmDeletion": "Potwierdź",
-<<<<<<< HEAD
     "apiKeyRequiredDesc": "API key z CurseForge jest wymagany do przeglądania modów",
     "loadingInstalled": "Ładowanie zainstalowanych modów...",
     "loadingBrowse": "Pobieranie modów z CurseForge...",
@@ -91,10 +86,6 @@
     "retry": "PONÓW",
     "back": "WSTECZ",
     "unknown": "Nieznany"
-=======
-    "apiKeyRequired": "Wymagany Klucz API",
-    "apiKeyRequiredDesc": "Klucz API CurseForge jest potrzebny do przeglądania modów"
->>>>>>> upstream/main
   },
   "news": {
     "title": "WSZYSTKIE WIADOMOŚCI",
@@ -164,27 +155,11 @@
     "logsFolder": "Otwórz Folder",
     "logsLoading": "Ładowanie logów...",
     "closeLauncher": "Zachowanie Launchera",
-<<<<<<< HEAD
     "closeOnStart": "Zamknij Launcher po uruchomieniu gry",
     "closeOnStartDescription": "Automatycznie zamknij launcher po uruchomieniu Hytale",
     "hwAccel": "Akceleracja Sprzętowa",
     "hwAccelDescription": "Włącz akcelerację sprzętową dla launchera",
     "gameBranch": "Wersja Gry"
-=======
-    "closeOnStart": "Zamknij Launcher przy starcie gry",
-    "closeOnStartDescription": "Automatycznie zamknij launcher po uruchomieniu Hytale",
-    "hwAccel": "Przyspieszenie Sprzętowe",
-    "hwAccelDescription": "Włącz przyspieszenie sprzętowe dla launchera",
-    "gameBranch": "Gałąź Gry",
-    "branchRelease": "Wydanie",
-    "branchPreRelease": "Przed-Wydaniem",
-    "branchHint": "Przełączaj między stabilnym wydaniem a eksperymentalną wersją przed-wydaniem",
-    "branchWarning": "Zmiana gałęzi spowoduje pobranie i instalację innej wersji gry",
-    "branchSwitching": "Przełączanie na {branch}...",
-    "branchSwitched": "Pomyślnie przełączono na {branch}!",
-    "installRequired": "Wymagana Instalacja",
-    "branchInstallConfirm": "Gra zostanie zainstalowana dla gałęzi {branch}. Kontynuować?"
->>>>>>> upstream/main
   },
   "uuid": {
     "modalTitle": "Zarządzanie UUID",
@@ -289,5 +264,11 @@
     "installationFailed": "Instalacja nie powiodła się: {error}",
     "installingGameFiles": "Instalowanie plików gry...",
     "installComplete": "Instalacja zakończona!"
+  },
+  "welcome": {
+    "title": "Witaj",
+    "description": "Wybierz nazwę użytkownika.",
+    "placeholder": "Nazwa użytkownika",
+    "continue": "KONTYNUUJ"
   }
 }

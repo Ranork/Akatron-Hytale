@@ -246,5 +246,11 @@
     "installationFailed": "Instalasi gagal: {error}",
     "installingGameFiles": "Menginstal file game...",
     "installComplete": "Instalasi selesai!"
+  },
+  "welcome": {
+    "title": "Selamat Datang",
+    "description": "Silakan pilih nama pengguna.",
+    "placeholder": "Nama Pengguna",
+    "continue": "LANJUTKAN"
   }
 }

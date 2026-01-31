@@ -14,14 +14,8 @@ body {
 .glass-panel {
     background: rgba(20, 20, 20, 0.6);
     backdrop-filter: blur(20px);
-<<<<<<< HEAD
     border: 1px solid rgba(255, 255, 255, 0.05);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
-=======
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    box-shadow:
-        0 8px 32px rgba(0, 0, 0, 0.4),
-        inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .sidebar {
@@ -416,18 +410,12 @@ body {
     text-shadow: 0 0 30px rgba(168, 85, 247, 0.5);
 }
 
-<<<<<<< HEAD
 /* Window Controls */
 .window-controls {
     position: fixed;
     top: 1.5rem;
     right: 1.5rem;
-=======
-.game-tags {
-    display: flex;
-    gap: 0.75rem;
 }
-
 .tag {
     background: rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);

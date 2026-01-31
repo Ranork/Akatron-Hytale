@@ -145,7 +145,7 @@ function saveLanguage(language) {
 
 function loadLanguage() {
   const config = loadConfig();
-  return config.language || 'en';
+  return config.language; // Returns undefined if not set, triggers auto-detect in i18n.js
 }
 
 function saveCloseLauncherOnStart(enabled) {

@@ -129,5 +129,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   onUpdateError: (callback) => {
     ipcRenderer.on('update-error', (event, data) => callback(data));
+  },
+
+  onRequestUsername: (callback) => {
+    ipcRenderer.on('request-username', () => callback());
   }
 });

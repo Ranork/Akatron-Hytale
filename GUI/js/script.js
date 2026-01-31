@@ -99,5 +99,68 @@ document.addEventListener('DOMContentLoaded', () => {
     updateLanguageSelector();
   }
   
-  checkDiscordPopup();
+    checkDiscordPopup();
+
+    // Username Set Modal Logic
+    if (window.electronAPI && window.electronAPI.onRequestUsername) {
+        window.electronAPI.onRequestUsername(() => {
+            const modal = document.getElementById('setUsernameModal');
+            const input = document.getElementById('welcomePlayerName');
+            const confirmBtn = document.getElementById('confirmUsernameBtn');
+
+            if (modal && input && confirmBtn) {
+                // Show modal
+                modal.classList.remove('hidden');
+                // Small delay to allow display:block to apply before opacity transition
+                setTimeout(() => {
+                    modal.classList.remove('opacity-0');
+                    modal.querySelector('.glass-panel').classList.remove('scale-95');
+                    input.focus();
+                }, 50);
+
+                const saveAndClose = async () => {
+                    const newName = input.value.trim();
+                    if (newName && newName.length > 0) {
+                        try {
+                            await window.electronAPI.saveUsername(newName);
+                            
+                            // Visual feedback
+                            const btnSpan = confirmBtn.querySelector('span');
+                            if (btnSpan) btnSpan.textContent = "SAVED!";
+                            confirmBtn.classList.replace('bg-purple-600', 'bg-green-600');
+                            confirmBtn.classList.replace('hover:bg-purple-700', 'hover:bg-green-700');
+                            
+                            setTimeout(() => {
+                                // Hide modal
+                                modal.classList.add('opacity-0');
+                                modal.querySelector('.glass-panel').classList.add('scale-95');
+                                setTimeout(() => {
+                                    modal.classList.add('hidden');
+                                    // Update UI directly instead of reloading
+                                    const nameDisplay = document.getElementById('playerNameDisplay');
+                                    const settingsName = document.getElementById('settingsPlayerName');
+                                    const nameInput = document.getElementById('playerName'); // The input in the top right
+                                    
+                                    if (nameDisplay) nameDisplay.textContent = newName;
+                                    if (settingsName) settingsName.value = newName;
+                                    if (nameInput) nameInput.value = newName;
+                                }, 500);
+                            }, 500);
+                        } catch (err) {
+                            console.error("Failed to save username:", err);
+                        }
+                    } else {
+                        input.classList.add('border-red-500');
+                        setTimeout(() => input.classList.remove('border-red-500'), 500);
+                    }
+                };
+
+                confirmBtn.onclick = saveAndClose;
+                
+                input.onkeypress = (e) => {
+                    if (e.key === 'Enter') saveAndClose();
+                };
+            }
+        });
+    }
 });
