@@ -63,8 +63,10 @@ function handleNavigation() {
   navItems.forEach(item => {
     item.addEventListener('click', () => {
       const page = item.getAttribute('data-page');
-      showPage(`${page}-page`);
-      setActiveNav(page);
+      if (page) {
+        showPage(`${page}-page`);
+        setActiveNav(page);
+      }
     });
   });
 }
@@ -857,7 +859,7 @@ function getErrorMessage(technicalMessage, errorType) {
     case 'stall':
       return 'Download stalled due to slow connection. Please retry.';
     case 'file':
-      return 'Unable to save file. Check disk space and permissions. Please retry.';
+      return 'Unable to save file. Check permissions. Please retry.';
     case 'permission':
       return 'Permission denied. Check if launcher has write access. Please retry.';
     case 'server':
@@ -986,7 +988,7 @@ function setupRetryButton() {
         if (!currentDownloadState.retryData || currentDownloadState.errorType === 'jre') {
           currentDownloadState.retryData = {
             branch: 'release',
-            fileName: '4.pwr'
+            fileName: '7.pwr'
           };
           console.log('[UI] Created default PWR retry data:', currentDownloadState.retryData);
         }
@@ -1054,7 +1056,7 @@ function setupRetryButton() {
           } else {
             currentDownloadState.retryData = {
               branch: 'release',
-              fileName: '4.pwr'
+              fileName: '7.pwr'
             };
           }
           console.log('[UI] Created default retry data:', currentDownloadState.retryData);
@@ -1114,7 +1116,10 @@ function getRetryContextMessage() {
   }
 }
 
-// Make toggleMaximize globally available
+window.openDiscordExternal = function() {
+  window.electronAPI?.openExternal('https://discord.gg/hf2pdc');
+};
+
 window.toggleMaximize = toggleMaximize;
 
 // About Modal Logic
